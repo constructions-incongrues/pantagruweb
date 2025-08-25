@@ -138,3 +138,14 @@ server = "gabelle"
 builder = "local"
 git_account = "trivoallan"
 repo = "constructions-incongrues/pantagruweb"
+
+##
+
+[[resource_sync]]
+name = "pantagruweb"
+tags = ["pantagruweb"]
+[resource_sync.config]
+linked_repo = "pantagruweb-main"
+resource_path = ["stacks/main.toml"]
+managed = true
+match_tags = ["pantagruweb"]
