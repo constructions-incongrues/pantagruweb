@@ -87,6 +87,15 @@ resource "cloudflare_record" "gargamelle_wildcard" {
   proxied = false
 }
 
+resource "cloudflare_record" "gargamelle_wildcard" {
+  zone_id = data.cloudflare_zone.main.id
+  name    = "*"
+  content = "gabelle.pantagruweb.club"
+  type    = "CNAME"
+  ttl     = 300
+  proxied = false
+}
+
 
 # Outputs
 output "zone_info" {
