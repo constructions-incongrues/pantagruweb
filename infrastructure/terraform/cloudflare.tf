@@ -21,18 +21,6 @@ variable "zone_id" {
   type        = string
 }
 
-variable "cloudflare_r2_access_key" {
-  description = "Clé d'accès R2 Cloudflare"
-  type        = string
-  sensitive   = true
-}
-
-variable "cloudflare_r2_secret_key" {
-  description = "Clé secrète R2 Cloudflare"
-  type        = string
-  sensitive   = true
-}
-
 variable "cloudflare_account_id" {
   description = "ID du compte Cloudflare"
   type        = string
