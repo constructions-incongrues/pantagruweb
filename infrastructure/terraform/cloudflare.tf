@@ -52,15 +52,6 @@ resource "cloudflare_record" "panurge" {
   proxied = false
 }
 
-resource "cloudflare_record" "panurge" {
-  zone_id = data.cloudflare_zone.main.id
-  name    = "panurge"
-  content = "gabelle"
-  type    = "CNAME"
-  ttl     = 300
-  proxied = false
-}
-
 resource "cloudflare_record" "gargamelle" {
   zone_id = data.cloudflare_zone.main.id
   name    = "gargamelle"
