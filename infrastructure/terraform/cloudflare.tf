@@ -40,10 +40,30 @@ resource "cloudflare_record" "gabelle" {
   proxied = false
 }
 
+
+
 # Enregistrement CNAME
-resource "cloudflare_record" "nhuitn" {
+resource "cloudflare_record" "panurge" {
   zone_id = data.cloudflare_zone.main.id
-  name    = "nhuitn"
+  name    = "panurge"
+  content = "gabelle"
+  type    = "CNAME"
+  ttl     = 300
+  proxied = false
+}
+
+resource "cloudflare_record" "panurge" {
+  zone_id = data.cloudflare_zone.main.id
+  name    = "panurge"
+  content = "gabelle"
+  type    = "CNAME"
+  ttl     = 300
+  proxied = false
+}
+
+resource "cloudflare_record" "gargamelle" {
+  zone_id = data.cloudflare_zone.main.id
+  name    = "gargamelle"
   content = "gabelle"
   type    = "CNAME"
   ttl     = 300
@@ -68,9 +88,9 @@ resource "cloudflare_record" "status" {
   proxied = false
 }
 
-resource "cloudflare_record" "wildcard" {
+resource "cloudflare_record" "gargamelle_wildcard" {
   zone_id = data.cloudflare_zone.main.id
-  name    = "*"
+  name    = "*.gargamelle"
   content = "gabelle"
   type    = "CNAME"
   ttl     = 300
