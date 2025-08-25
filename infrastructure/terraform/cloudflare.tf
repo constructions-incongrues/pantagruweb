@@ -52,7 +52,7 @@ resource "cloudflare_record" "nhuitn" {
 
 resource "cloudflare_record" "archive" {
   zone_id = data.cloudflare_zone.main.id
-  name    = "nhuitn"
+  name    = "archive"
   content = "gabelle"
   type    = "CNAME"
   ttl     = 300
