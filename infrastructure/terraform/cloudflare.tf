@@ -39,6 +39,7 @@ resource "cloudflare_record" "nhuitn" {
   ttl     = 300
   proxied = false
 }
+
 resource "cloudflare_record" "status" {
   zone_id = data.cloudflare_zone.main.id
   name    = "status"
@@ -47,6 +48,16 @@ resource "cloudflare_record" "status" {
   ttl     = 300
   proxied = false
 }
+
+resource "cloudflare_record" "wildcard" {
+  zone_id = data.cloudflare_zone.main.id
+  name    = "*"
+  content = "gabelle.pantagruweb.club"
+  type    = "CNAME"
+  ttl     = 300
+  proxied = false
+}
+
 
 # Outputs
 output "zone_info" {
