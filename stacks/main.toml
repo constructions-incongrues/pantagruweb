@@ -13,11 +13,16 @@ tags = ["pantagruweb"]
 [stack.config]
 server = "gabelle"
 links = [
-  "https://poulpe.pantagruweb.club"
+  "https://nhuitn.pantagruweb.club"
 ]
 poll_for_updates = true
 linked_repo = "pantagruweb-main"
 run_directory = "stacks/n8n"
+environment = """
+GENERIC_TIMEZONE=Europe/Paris
+DOMAIN_NAME=pantagruweb.club
+SUBDOMAIN=nhuitn
+"""
 
 ##
 
@@ -74,7 +79,7 @@ services:
       traefik.http.routers.slskd.tls.options: securetls@file
       traefik.http.services.slskd.loadbalancer.server.port: 5030
     volumes:
-      - /mnt/remote/vip/{VIP_PATH_PREFIX}/${COOLECTION_USER}/downloads/slskd:/downloads
+      - /mnt/remote/vip/{COOLECTIONS_PATH}/${COOLECTIONS_USERNAME}/downloads/slskd:/downloads
       - /etc/localtime:/etc/localtime:ro
 
 networks:
