@@ -75,6 +75,9 @@ name = "slskd-tristan"
 tags = ["pantagruweb"]
 [stack.config]
 server = "gabelle"
+links = [
+  "https://tristan-gargamelle.pantagruweb.club"
+]
 destroy_before_deploy = true
 additional_env_files = ["seed.env"]
 pre_deploy.command = """
