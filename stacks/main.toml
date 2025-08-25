@@ -1,0 +1,140 @@
+[[server]]
+name = "gabelle"
+tags = ["hetzner", "pantagruweb", "system"]
+[server.config]
+address = "https://gabelle.pantagruweb.club:8120"
+enabled = true
+
+##
+
+[[stack]]
+name = "slskd"
+template = true
+tags = ["pantagruweb"]
+[stack.config]
+server = "gabelle"
+destroy_before_deploy = true
+additional_env_files = ["seed.env"]
+pre_deploy.command = """
+SEED=$(date +%s)
+echo "SEED=$SEED" > seed.env
+echo "SLSKD_SLSK_USERNAME=$SEED" >> seed.env
+echo "SLSKD_SLSK_PASSWORD=$SEED" >> seed.env
+echo "https://${SEED}-gargamelle.pantagruweb.club"
+"""
+file_contents = """
+services:
+  slskd:
+    container_name: slskd-${SEED}
+    restart: unless-stopped
+    image: slskd/slskd:0.23.2
+    user: "${UID-1000}:${GID-1000}"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Paris
+      - SLSKD_REMOTE_CONFIGURATION=true
+      - SLSKD_UMASK=0000
+      - SLSKD_FILE_PERMISSION_MODE=644
+      - SLSKD_REMOTE_FILE_MANAGEMENT=true
+      - SLSKD_SHARED_DIR=/downloads
+      - SLSKD_DOWNLOADS_DIR=/downloads
+    networks:
+      - saltbox
+    env_file: seed.env
+    labels:
+      traefik.enable: true
+      traefik.http.routers.slskd-http.entrypoints: web
+      traefik.http.routers.slskd-http.middlewares: globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker
+      traefik.http.routers.slskd-http.rule: Host(`${SEED}-gargamelle.pantagruweb.club`)
+      traefik.http.routers.slskd-http.service: slskd
+      traefik.http.routers.slskd.entrypoints: websecure
+      traefik.http.routers.slskd.middlewares: globalHeaders@file,secureHeaders@file,robotHeaders@file,cloudflarewarp@docker
+      traefik.http.routers.slskd.rule: Host(`${SEED}-gargamelle.pantagruweb.club`)
+      traefik.http.routers.slskd.service: slskd
+      traefik.http.routers.slskd.tls.certresolver: cfdns
+      traefik.http.routers.slskd.tls.options: securetls@file
+      traefik.http.services.slskd.loadbalancer.server.port: 5030
+    volumes:
+      - /mnt/remote/vip/Coolections/Audiothèque/${SEED}/downloads/slskd:/downloads
+      - /etc/localtime:/etc/localtime:ro
+
+networks:
+  saltbox:
+    external: true
+"""
+
+##
+
+[[stack]]
+name = "slskd-tristan"
+tags = ["pantagruweb"]
+[stack.config]
+server = "gabelle"
+destroy_before_deploy = true
+additional_env_files = ["seed.env"]
+pre_deploy.command = """
+COOLECTION_USER="Tristan"
+SUBDOMAIN="tristan"
+SEED=$(date +%s)
+echo "COOLECTION_USER=$COOLECTION_USER" > seed.env
+echo "SUBDOMAIN=$SUBDOMAIN" >> seed.env
+echo "SLSKD_SLSK_USERNAME=${COOLECTION_USER}${SEED}" >> seed.env
+echo "SLSKD_SLSK_PASSWORD=${COOLECTION_USER}${SEED}" >> seed.env
+
+cat seed.env
+
+echo -n "https://${COOLECTION_USER}-gargamelle.pantagruweb.club"
+"""
+file_contents = """
+services:
+  slskd:
+    container_name: slskd-${COOLECTION_USER}
+    restart: unless-stopped
+    image: slskd/slskd:0.23.2
+    user: "${UID-1000}:${GID-1000}"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Paris
+      - SLSKD_REMOTE_CONFIGURATION=true
+      - SLSKD_UMASK=0000
+      - SLSKD_FILE_PERMISSION_MODE=644
+      - SLSKD_REMOTE_FILE_MANAGEMENT=true
+      - SLSKD_SHARED_DIR=/downloads
+      - SLSKD_DOWNLOADS_DIR=/downloads
+    networks:
+      - saltbox
+    env_file: seed.env
+    labels:
+      traefik.enable: true
+      traefik.http.routers.slskd-http.entrypoints: web
+      traefik.http.routers.slskd-http.middlewares: globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker
+      traefik.http.routers.slskd-http.rule: Host(`${SUBDOMAIN}-gargamelle.pantagruweb.club`)
+      traefik.http.routers.slskd-http.service: slskd
+      traefik.http.routers.slskd.entrypoints: websecure
+      traefik.http.routers.slskd.middlewares: globalHeaders@file,secureHeaders@file,robotHeaders@file,cloudflarewarp@docker
+      traefik.http.routers.slskd.rule: Host(`${SUBDOMAIN}-gargamelle.pantagruweb.club`)
+      traefik.http.routers.slskd.service: slskd
+      traefik.http.routers.slskd.tls.certresolver: cfdns
+      traefik.http.routers.slskd.tls.options: securetls@file
+      traefik.http.services.slskd.loadbalancer.server.port: 5030
+    volumes:
+      - /mnt/remote/vip/Coolections/Audiothèque/${COOLECTION_USER}/downloads/slskd:/downloads
+      - /etc/localtime:/etc/localtime:ro
+
+networks:
+  saltbox:
+    external: true
+"""
+
+##
+
+[[repo]]
+name = "pantagruweb-main"
+tags = ["pantagruweb"]
+[repo.config]
+server = "gabelle"
+builder = "local"
+git_account = "trivoallan"
+repo = "constructions-incongrues/pantagruweb"
