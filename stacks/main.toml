@@ -16,16 +16,20 @@ server = "gabelle"
 destroy_before_deploy = true
 additional_env_files = ["seed.env"]
 pre_deploy.command = """
-SEED=$(date +%s)
-echo "SEED=$SEED" > seed.env
-echo "SLSKD_SLSK_USERNAME=$SEED" >> seed.env
-echo "SLSKD_SLSK_PASSWORD=$SEED" >> seed.env
-echo "https://${SEED}-gargamelle.pantagruweb.club"
+echo > seed.env
+echo "COOLECTIONS_PATH=/mnt/remote/vip/Coolections/Audiothèque" >> seed.env
+echo "COOLECTIONS_USERNAME=${USER}" > seed.env
+echo "SEED=$(date +%s)" >> seed.env
+echo "SLSKD_SLSK_PASSWORD=${USER}${SEED}" >> seed.env
+echo "SLSKD_SLSK_USERNAME=${USER}${SEED}" >> seed.env
+echo "SUBDOMAIN=${USER,,}-gargamelle" >> seed.env
+
+echo -n "https://${SUBDOMAIN}.pantagruweb.club"
 """
 file_contents = """
 services:
   slskd:
-    container_name: slskd-${SEED}
+    container_name: slskd-${COOLECTION_USER}
     restart: unless-stopped
     image: slskd/slskd:0.23.2
     user: "${UID-1000}:${GID-1000}"
@@ -33,7 +37,7 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Europe/Paris
-      - SLSKD_REMOTE_CONFIGURATION=true
+      - SLSKD_REMOTE_CONFIGURATION=false
       - SLSKD_UMASK=0000
       - SLSKD_FILE_PERMISSION_MODE=644
       - SLSKD_REMOTE_FILE_MANAGEMENT=true
@@ -46,17 +50,17 @@ services:
       traefik.enable: true
       traefik.http.routers.slskd-http.entrypoints: web
       traefik.http.routers.slskd-http.middlewares: globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker
-      traefik.http.routers.slskd-http.rule: Host(`${SEED}-gargamelle.pantagruweb.club`)
+      traefik.http.routers.slskd-http.rule: Host(`${SUBDOMAIN}.pantagruweb.club`)
       traefik.http.routers.slskd-http.service: slskd
       traefik.http.routers.slskd.entrypoints: websecure
       traefik.http.routers.slskd.middlewares: globalHeaders@file,secureHeaders@file,robotHeaders@file,cloudflarewarp@docker
-      traefik.http.routers.slskd.rule: Host(`${SEED}-gargamelle.pantagruweb.club`)
+      traefik.http.routers.slskd.rule: Host(`${SUBDOMAIN}.pantagruweb.club`)
       traefik.http.routers.slskd.service: slskd
       traefik.http.routers.slskd.tls.certresolver: cfdns
       traefik.http.routers.slskd.tls.options: securetls@file
       traefik.http.services.slskd.loadbalancer.server.port: 5030
     volumes:
-      - /mnt/remote/vip/Coolections/Audiothèque/${SEED}/downloads/slskd:/downloads
+      - /mnt/remote/vip/{VIP_PATH_PREFIX}/${COOLECTION_USER}/downloads/slskd:/downloads
       - /etc/localtime:/etc/localtime:ro
 
 networks:
