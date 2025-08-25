@@ -25,13 +25,32 @@ variable "cloudflare_account_id" {
   description = "ID du compte Cloudflare"
   type        = string
 }
+
 # Data source pour récupérer les informations de la zone
 data "cloudflare_zone" "main" {
   zone_id = var.zone_id
 }
 
+resource "cloudflare_record" "gabelle" {
+  zone_id = data.cloudflare_zone.main.id
+  name    = "gabelle"
+  content = data.hcloud_server.gabelle.ipv4_address
+  type    = "A"
+  ttl     = 300
+  proxied = false
+}
+
 # Enregistrement CNAME
 resource "cloudflare_record" "nhuitn" {
+  zone_id = data.cloudflare_zone.main.id
+  name    = "nhuitn"
+  content = "gabelle.pantagruweb.club"
+  type    = "CNAME"
+  ttl     = 300
+  proxied = false
+}
+
+resource "cloudflare_record" "archives" {
   zone_id = data.cloudflare_zone.main.id
   name    = "nhuitn"
   content = "gabelle.pantagruweb.club"
