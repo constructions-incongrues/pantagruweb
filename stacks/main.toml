@@ -9,7 +9,7 @@ enabled = true
 
 [[stack]]
 name = "pantagruweb-n8n"
-tags = ["pantagruweb"]
+tags = ["pantagruweb", "slskd"]
 [stack.config]
 server = "gabelle"
 links = [
@@ -91,7 +91,7 @@ networks:
 
 [[stack]]
 name = "slskd-tristan"
-tags = ["pantagruweb"]
+tags = ["pantagruweb", "slskd"]
 [stack.config]
 server = "gabelle"
 links = [
