@@ -46,7 +46,7 @@ resource "cloudflare_record" "gabelle" {
 resource "cloudflare_record" "panurge" {
   zone_id = data.cloudflare_zone.main.id
   name    = "panurge"
-  content = "gabelle"
+  content = "gabelle.pantagruweb.club"
   type    = "CNAME"
   ttl     = 300
   proxied = false
@@ -55,7 +55,7 @@ resource "cloudflare_record" "panurge" {
 resource "cloudflare_record" "archive" {
   zone_id = data.cloudflare_zone.main.id
   name    = "archive"
-  content = "gabelle"
+  content = "gabelle.pantagruweb.club"
   type    = "CNAME"
   ttl     = 300
   proxied = false
@@ -73,7 +73,7 @@ resource "cloudflare_record" "status" {
 resource "cloudflare_record" "gargamelle_wildcard" {
   zone_id = data.cloudflare_zone.main.id
   name    = "*.gargamelle"
-  content = "gabelle"
+  content = "gabelle.pantagruweb.club"
   type    = "CNAME"
   ttl     = 300
   proxied = false
