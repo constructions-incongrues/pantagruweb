@@ -30,7 +30,13 @@ services:
     volumes:
       - n8n_data:/home/node/.n8n
       - ./local-files:/files
+    networks:
+      - default
+      - saltbox
 
 volumes:
   n8n_data:
-  traefik_data:
+
+networks:
+  saltbox:
+    external: true
