@@ -41,11 +41,19 @@ resource "cloudflare_record" "gabelle" {
 }
 
 
-
 # Enregistrement CNAME
 resource "cloudflare_record" "panurge" {
   zone_id = data.cloudflare_zone.main.id
   name    = "panurge"
+  content = "gabelle.pantagruweb.club"
+  type    = "CNAME"
+  ttl     = 300
+  proxied = false
+}
+
+resource "cloudflare_record" "nhuitn" {
+  zone_id = data.cloudflare_zone.main.id
+  name    = "nhuitn"
   content = "gabelle.pantagruweb.club"
   type    = "CNAME"
   ttl     = 300
