@@ -10,7 +10,8 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"HashiCorp.terraform"
+				"HashiCorp.terraform",
+				"tamasfe.even-better-toml"
 			]
 		}
 	}
