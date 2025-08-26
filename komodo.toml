@@ -27,7 +27,6 @@ resource_path = [
   "stacks/slskd-nelly/stack.toml",
   "stacks/slskd-dany/stack.toml",
   "stacks/slskd-tristan/stack.toml",
-  "stacks/slskd-template/stack.toml",
   "stacks/slskd-bender/stack.toml"
 ]
 managed = false
