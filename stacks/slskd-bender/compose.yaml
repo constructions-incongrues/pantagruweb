@@ -5,7 +5,7 @@ services:
     user: "${UID-1000}:${GID-1000}"
     networks:
       - saltbox
-    env_file: seed.env
+    env_file: .env
     labels:
       - "traefik.enable: true"
       - "com.github.saltbox.saltbox_managed: true"
