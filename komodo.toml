@@ -114,7 +114,8 @@ SLSKD_DOWNLOADS_DIR=/downloads
 
 [[stack]]
 name = "pantagruweb-slskd-template"
-tags = ["pantagruweb", "slskd"]
+template = true
+tags = ["pantagruweb", "slskd", "template"]
 [stack.config]
 server = "gabelle"
 links = [
