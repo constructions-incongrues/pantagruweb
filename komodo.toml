@@ -1,0 +1,34 @@
+[[resource_sync]]
+name = "pantagruweb"
+tags = ["pantagruweb"]
+[resource_sync.config]
+linked_repo = "pantagruweb-main"
+resource_path = [
+  "komodo.toml",
+  "stacks/slskd-dany/stack.toml",
+  "stacks/slskd-nelly/stack.toml",
+  "stacks/slskd-tristan/stack.toml",
+  "stacks/n8n/stack.toml"
+]
+managed = true
+match_tags = ["pantagruweb"]
+
+##
+
+[[server]]
+name = "gabelle"
+tags = ["pantagruweb", "hetzner"]
+[server.config]
+address = "https://gabelle.pantagruweb.club:8120"
+enabled = true
+
+##
+
+[[repo]]
+name = "pantagruweb-main"
+tags = ["pantagruweb"]
+[repo.config]
+server = "gabelle"
+builder = "local"
+git_account = "trivoallan"
+repo = "constructions-incongrues/pantagruweb"
