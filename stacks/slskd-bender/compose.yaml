@@ -7,12 +7,12 @@ services:
       - saltbox
     env_file: .env
     labels:
-      - "traefik.enable: true"
-      - "com.github.saltbox.saltbox_managed: true"
-      - "traefik.http.routers.pantagruweb-slskd-bender.entrypoints: web,websecure"
-      - "traefik.http.routers.pantagruweb-slskd-bender.middlewares: globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker"
-      - "traefik.http.routers.pantagruweb-slskd-bender.rule: Host(`${SUBDOMAIN}.pantagruweb.club`)"
-      - "traefik.http.services.pantagruweb-slskd-bender.loadbalancer.server.port: 5030"
+      traefik.enable: true
+      com.github.saltbox.saltbox_managed: true
+      traefik.http.routers.pantagruweb-slskd-bender.entrypoints: web,websecure
+      traefik.http.routers.pantagruweb-slskd-bender.middlewares: globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker
+      traefik.http.routers.pantagruweb-slskd-bender.rule: Host(`${SUBDOMAIN}.pantagruweb.club`)
+      traefik.http.services.pantagruweb-slskd-bender.loadbalancer.server.port: 5030
     volumes:
       - ${COOLECTIONS_DIR}/${COOLECTION_NAME}/downloads/slskd:/downloads
       - /etc/localtime:/etc/localtime:ro
