@@ -1,6 +1,5 @@
 [[stack]]
 name = "pantagruweb-slskd-{{ cookiecutter.coolection_name | lower }}"
-temmlate = true
 tags = ["pantagruweb", "slskd"]
 [stack.config]
 server = "gabelle"
@@ -9,23 +8,7 @@ links = [
 ]
 linked_repo = "pantagruweb-main"
 run_directory = "stacks/slskd-{{ cookiecutter.coolection_name | lower }}"
-destroy_before_deploy = true
-pre_deploy.command = """
-COOLECTION_NAME={{ cookiecutter.coolection_name }}
-HASH={{ random_ascii_string(12) }}
-SUBDOMAIN={{ cookiecutter.subdomain }}
-COOLECTIONS_DIR={{ cookiecutter.coolections_dir }}
-echo "COOLECTIONS_DIR=${COOLECTIONS_DIR}" >> .env
-echo "COOLECTION_NAME=${COOLECTION_NAME}" >> .env
-echo "HASH=${HASH}" >> .env
-echo "SLSKD_SLSK_PASSWORD=Pantagruweb${COOLECTION_NAME}${HASH}" >> .env
-echo "SLSKD_SLSK_USERNAME=Pantagruweb${COOLECTION_NAME}${HASH}" >> .env
-echo "SUBDOMAIN=${SUBDOMAIN}" >> .env
-
-cat .env
-
-echo -n "https://${SUBDOMAIN}.pantagruweb.club"
-"""
+destroy_before_deploy = false
 environment = """
 PUID=1000
 PGID=1000
@@ -36,4 +19,8 @@ SLSKD_FILE_PERMISSION_MODE=644
 SLSKD_REMOTE_FILE_MANAGEMENT=true
 SLSKD_SHARED_DIR=/downloads
 SLSKD_DOWNLOADS_DIR=/downloads
+COOLECTION_NAME={{ cookiecutter.coolection_name }}
+HASH={{ random_ascii_string(12) }}
+SUBDOMAIN={{ cookiecutter.subdomain }}
+COOLECTIONS_DIR={{ cookiecutter.coolections_dir }}
 """

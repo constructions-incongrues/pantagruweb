@@ -9,10 +9,10 @@ services:
     labels:
       - "traefik.enable: true"
       - "com.github.saltbox.saltbox_managed: true"
-      - "traefik.http.routers.pantagruweb-slskd-${COOLECTION_NAME}.entrypoints: web,websecure"
-      - "traefik.http.routers.pantagruweb-slskd-${COOLECTION_NAME}.middlewares: globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker"
-      - "traefik.http.routers.pantagruweb-slskd-${COOLECTION_NAME}.rule: Host(`${SUBDOMAIN}.pantagruweb.club`)"
-      - "traefik.http.services.pantagruweb-slskd-${COOLECTION_NAME}.loadbalancer.server.port: 5030"
+      - "traefik.http.routers.pantagruweb-slskd-{{ cookiecutter.coolection_name | lower }}.entrypoints: web,websecure"
+      - "traefik.http.routers.pantagruweb-slskd-{{ cookiecutter.coolection_name | lower }}.middlewares: globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker"
+      - "traefik.http.routers.pantagruweb-slskd-{{ cookiecutter.coolection_name | lower }}.rule: Host(`${SUBDOMAIN}.pantagruweb.club`)"
+      - "traefik.http.services.pantagruweb-slskd-{{ cookiecutter.coolection_name | lower }}.loadbalancer.server.port: 5030"
     volumes:
       - ${COOLECTIONS_DIR}/${COOLECTION_NAME}/downloads/slskd:/downloads
       - /etc/localtime:/etc/localtime:ro
