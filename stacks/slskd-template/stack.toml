@@ -1,5 +1,5 @@
 [[stack]]
-name = "pantagruweb-slskd-<COOLECTION_NAME>"
+name = "pantagruweb-slskd-template"
 temmlate = true
 tags = ["pantagruweb", "slskd"]
 [stack.config]
