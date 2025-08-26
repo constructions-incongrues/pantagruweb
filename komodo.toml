@@ -4,11 +4,7 @@ tags = ["pantagruweb"]
 [resource_sync.config]
 linked_repo = "pantagruweb-main"
 resource_path = [
-  "komodo.toml",
-  "stacks/slskd-dany/stack.toml",
-  "stacks/slskd-nelly/stack.toml",
-  "stacks/slskd-tristan/stack.toml",
-  "stacks/n8n/stack.toml"
+  "komodo.toml"
 ]
 managed = true
 match_tags = ["pantagruweb"]
