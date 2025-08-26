@@ -1,16 +1,32 @@
-## Add your compose file here
 services:
-  hello_world:
-    image: hello-world
-    # networks:
-    #   - default
-    # ports:
-    #   - 3000:3000
-    # volumes:
-    #   - data:/data
+  slskd:
+    restart: unless-stopped
+    image: slskd/slskd:0.23.2
+    user: "${UID-1000}:${GID-1000}"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Paris
+      - SLSKD_REMOTE_CONFIGURATION=true
+      - SLSKD_UMASK=0000
+      - SLSKD_FILE_PERMISSION_MODE=644
+      - SLSKD_REMOTE_FILE_MANAGEMENT=true
+      - SLSKD_SHARED_DIR=/downloads
+      - SLSKD_DOWNLOADS_DIR=/downloads
+    networks:
+      - saltbox
+    env_file: seed.env
+    labels:
+      traefik.enable: true
+      com.github.saltbox.saltbox_managed: true
+      traefik.http.routers.pantagruweb-slskd-tristan.entrypoints: web,websecure
+      traefik.http.routers.pantagruweb-slskd-tristan.middlewares: globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker
+      traefik.http.routers.pantagruweb-slskd-tristan.rule: Host(`${SUBDOMAIN}.pantagruweb.club`)
+      traefik.http.services.pantagruweb-slskd-tristan.loadbalancer.server.port: 5030
+    volumes:
+      - /mnt/remote/vip/Coolections/Audiothèque/${COOLECTIONS_USERNAME}/downloads/slskd:/downloads
+      - /etc/localtime:/etc/localtime:ro
 
-# networks:
-#   default: {}
-
-# volumes:
-#   data:
+networks:
+  saltbox:
+    external: true
