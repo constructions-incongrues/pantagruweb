@@ -5,7 +5,7 @@ tags = ["pantagruweb", "slskd"]
 [stack.config]
 server = "gabelle"
 links = [
-  "https://SUBDOMAIN.pantagruweb.club"
+  "https://bender-gargamelle.pantagruweb.club"
 ]
 linked_repo = "pantagruweb-main"
 run_directory = "stacks/slskd-bender"
@@ -16,7 +16,7 @@ HASH=ITsfoDcIVsiI
 SUBDOMAIN=bender-gargamelle
 COOLECTIONS_DIR=/mnt/remote/vip/Coolections/Audiothèque
 echo "COOLECTIONS_DIR=${COOLECTIONS_DIR}" >> .env
-echo "COOLECTION_NAME=${COOLECTION_NAME}" > .env
+echo "COOLECTION_NAME=${COOLECTION_NAME}" >> .env
 echo "HASH=${HASH}" >> .env
 echo "SLSKD_SLSK_PASSWORD=Pantagruweb${COOLECTION_NAME}${HASH}" >> .env
 echo "SLSKD_SLSK_USERNAME=Pantagruweb${COOLECTION_NAME}${HASH}" >> .env
