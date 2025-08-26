@@ -8,6 +8,25 @@ enabled = true
 ##
 
 [[stack]]
+name = "pantagruweb-n8n"
+tags = ["pantagruweb"]
+[stack.config]
+server = "gabelle"
+links = [
+  "https://nhuitn.pantagruweb.club"
+]
+poll_for_updates = true
+linked_repo = "pantagruweb-main"
+run_directory = "stacks/n8n"
+environment = """
+GENERIC_TIMEZONE=Europe/Paris
+DOMAIN_NAME=pantagruweb.club
+SUBDOMAIN=nhuitn
+"""
+
+##
+
+[[stack]]
 name = "pantagruweb-slskd"
 template = true
 tags = ["pantagruweb", "slskd"]
@@ -195,6 +214,40 @@ networks:
     external: true
 """
 
+##
+
+[[stack]]
+name = "pantagruweb-slskd-tristan"
+tags = ["pantagruweb", "slskd"]
+[stack.config]
+server = "gabelle"
+links = [
+  "https://tristan-gargamelle.pantagruweb.club"
+]
+destroy_before_deploy = true
+linked_repo = "pantagruweb-main"
+run_directory = "stacks/slskd-tristan"
+additional_env_files = ["seed.env"]
+pre_deploy.command = """
+COOLECTIONS_USERNAME=Tristan
+SEED=$(date +%s)
+SUBDOMAIN=tristan-gargamelle
+COOLECTIONS_PATH=/mnt/remote/vip/Coolections/Audiothèque
+echo > seed.env
+echo "COOLECTIONS_PATH=${COOLECTIONS_PATH}" >> seed.env
+echo "COOLECTIONS_USERNAME=${COOLECTIONS_USERNAME}" > seed.env
+echo "SEED=${SEED}" >> seed.env
+echo "SLSKD_SLSK_PASSWORD=Pantagruweb${COOLECTIONS_USERNAME}${SEED}" >> seed.env
+echo "SLSKD_SLSK_USERNAME=Pantagruweb${COOLECTIONS_USERNAME}${SEED}" >> seed.env
+echo "SUBDOMAIN=${SUBDOMAIN}" >> seed.env
+
+cat seed.env
+
+echo -n "https://${SUBDOMAIN}.pantagruweb.club"
+"""
+
+##
+
 [[repo]]
 name = "pantagruweb-main"
 tags = ["pantagruweb"]
@@ -211,6 +264,10 @@ name = "pantagruweb"
 tags = ["pantagruweb"]
 [resource_sync.config]
 linked_repo = "pantagruweb-main"
-resource_path = ["stacks/main.toml"]
+resource_path = [
+  "stacks/main.toml",
+  "stacks/slskd-tristan/komodo.toml",
+  "stacks/n8n/komodo.toml"
+]
 managed = true
 match_tags = ["pantagruweb"]
