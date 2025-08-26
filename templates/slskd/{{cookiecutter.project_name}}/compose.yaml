@@ -14,7 +14,7 @@ services:
       - "traefik.http.routers.pantagruweb-slskd-{{ cookiecutter.coolection_name | lower }}.rule: Host(`${SUBDOMAIN}.pantagruweb.club`)"
       - "traefik.http.services.pantagruweb-slskd-{{ cookiecutter.coolection_name | lower }}.loadbalancer.server.port: 5030"
     volumes:
-      - ${COOLECTIONS_DIR}/${COOLECTION_NAME}/downloads/slskd:/downloads
+      - ${COOLECTIONS_DIR}/${COOLECTION_NAME}/Gargamelle:/downloads
       - /etc/localtime:/etc/localtime:ro
 
 networks:
