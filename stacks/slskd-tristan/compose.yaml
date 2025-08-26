@@ -3,16 +3,6 @@ services:
     restart: unless-stopped
     image: slskd/slskd:0.23.2
     user: "${UID-1000}:${GID-1000}"
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/Paris
-      - SLSKD_REMOTE_CONFIGURATION=true
-      - SLSKD_UMASK=0000
-      - SLSKD_FILE_PERMISSION_MODE=644
-      - SLSKD_REMOTE_FILE_MANAGEMENT=true
-      - SLSKD_SHARED_DIR=/downloads
-      - SLSKD_DOWNLOADS_DIR=/downloads
     networks:
       - saltbox
     env_file: seed.env

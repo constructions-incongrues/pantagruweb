@@ -1,0 +1,41 @@
+[[stack]]
+name = "pantagruweb-slskd-<COOLECTION_NAME>"
+temmlate = true
+tags = ["pantagruweb", "slskd"]
+[stack.config]
+server = "gabelle"
+links = [
+  "https://SUBDOMAIN.pantagruweb.club"
+]
+linked_repo = "pantagruweb-main"
+run_directory = "stacks/slskd-<COOLECTION_NAME>"
+destroy_before_deploy = true
+additional_env_files = ["seed.env"]
+pre_deploy.command = """
+COOLECTION_NAME=<COOLECTION_NAME>
+SEED=$(date +%s)
+SUBDOMAIN=<COOLECTION_NAME>-gargamelle
+COOLECTIONS_DIR=/mnt/remote/vip/Coolections/Audiothèque
+echo > seed.env
+echo "COOLECTIONS_DIR=${COOLECTIONS_DIR}" >> seed.env
+echo "COOLECTION_NAME=${COOLECTION_NAME}" > seed.env
+echo "SEED=${SEED}" >> seed.env
+echo "SLSKD_SLSK_PASSWORD=Pantagruweb${COOLECTION_NAME}${SEED}" >> seed.env
+echo "SLSKD_SLSK_USERNAME=Pantagruweb${COOLECTION_NAME}${SEED}" >> seed.env
+echo "SUBDOMAIN=${SUBDOMAIN}" >> seed.env
+
+cat seed.env
+
+echo -n "https://${SUBDOMAIN}.pantagruweb.club"
+"""
+environment = """
+PUID=1000
+PGID=1000
+TZ=Europe/Paris
+SLSKD_REMOTE_CONFIGURATION=true
+SLSKD_UMASK=0000
+SLSKD_FILE_PERMISSION_MODE=644
+SLSKD_REMOTE_FILE_MANAGEMENT=true
+SLSKD_SHARED_DIR=/downloads
+SLSKD_DOWNLOADS_DIR=/downloads
+"""
