@@ -1,11 +1,11 @@
 [[stack]]
-name = "pantagruweb-slskd-template"
+name = "pantagruweb-slskd-{{ cookiecutter.coolection_name | lower }}"
 temmlate = true
 tags = ["pantagruweb", "slskd"]
 [stack.config]
 server = "gabelle"
 links = [
-  "https://SUBDOMAIN.pantagruweb.club"
+  "https://{{ cookiecutter.subdomain }}.pantagruweb.club"
 ]
 linked_repo = "pantagruweb-main"
 run_directory = "stacks/slskd-{{ cookiecutter.coolection_name | lower }}"

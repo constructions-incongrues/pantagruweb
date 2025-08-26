@@ -1,5 +1,5 @@
 [[stack]]
-name = "pantagruweb-slskd-template"
+name = "pantagruweb-slskd-bender"
 temmlate = true
 tags = ["pantagruweb", "slskd"]
 [stack.config]
