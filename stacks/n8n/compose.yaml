@@ -5,7 +5,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.pantagruweb-n8n.rule=Host(`${SUBDOMAIN}.${DOMAIN_NAME}`)
-      - traefik.http.routers.pantagruweb-n8n.entrypoints=web
+      - traefik.http.routers.pantagruweb-n8n.entrypoints=web,websecure
       - traefik.http.services.n8n.loadbalancer.server.port=5678
     environment:
       - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
