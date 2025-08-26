@@ -16,7 +16,7 @@ services:
       - traefik.http.middlewares.pantagruweb-n8n.headers.SSLHost=${DOMAIN_NAME}
       - traefik.http.middlewares.pantagruweb-n8n.headers.STSIncludeSubdomains=true
       - traefik.http.middlewares.pantagruweb-n8n.headers.STSPreload=true
-      - traefik.http.routers.pantagruweb-n8n.middlewares=n8n@docker
+      - traefik.http.routers.pantagruweb-n8n.middlewares=pantagruweb-n8n@docker
       - traefik.http.services.n8n.loadbalancer.server.port=5678
     environment:
       - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
