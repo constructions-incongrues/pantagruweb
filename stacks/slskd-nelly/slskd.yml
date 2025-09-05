@@ -4,7 +4,7 @@ integration:
       on:
         - DownloadDirectoryComplete
       call:
-        url: https://nhuitn.pantagruweb.club/webhook/gargamelle/slskd?destinations=@dany&library=2&types=DownloadDirectoryComplete&downloadDir=/Coolections/Audiothèque/Nelly/__Gargamelle
+        url: https://nhuitn.pantagruweb.club/webhook/gargamelle/slskd?destinations=@nota2k&library=2&types=DownloadDirectoryComplete&downloadDir=/Coolections/Audiothèque/Nelly/__Gargamelle
         ignoreCertificateErrors: false
         headers: []
       timeout: 5000
