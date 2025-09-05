@@ -15,6 +15,7 @@ services:
       traefik.http.services.pantagruweb-slskd-nelly.loadbalancer.server.port: 5030
     volumes:
       - /mnt/remote/vip/Coolections/Audiothèque/Nelly/__Gargamelle:/app/downloads
+      - ./slskd.yml:/app/slskd.yml
       - /etc/localtime:/etc/localtime:ro
 
 networks:
