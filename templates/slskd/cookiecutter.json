@@ -2,5 +2,7 @@
   "project_name": "slskd-",
   "coolections_dir": "/mnt/remote/vip/Coolections/Audiothèque",
   "coolection_name": "MaCollection",
-  "subdomain": "myname-gargamelle"
+  "subdomain": "myname-gargamelle",
+  "discutons_username": "@myname",
+  "download_dir": "Gargamelle"
 }

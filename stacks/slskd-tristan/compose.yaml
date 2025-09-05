@@ -14,7 +14,8 @@ services:
       traefik.http.routers.pantagruweb-slskd-tristan.rule: Host(`${SUBDOMAIN}.pantagruweb.club`)
       traefik.http.services.pantagruweb-slskd-tristan.loadbalancer.server.port: 5030
     volumes:
-      - /mnt/remote/vip/Coolections/Audiothèque/${COOLECTIONS_USERNAME}/downloads/slskd:/downloads
+      - /mnt/remote/vip/Coolections/Audiothèque/${COOLECTIONS_USERNAME}/downloads/slskd:/app/downloads
+      - ./slskd.yml:/app/slskd.yml
       - /etc/localtime:/etc/localtime:ro
 
 networks:

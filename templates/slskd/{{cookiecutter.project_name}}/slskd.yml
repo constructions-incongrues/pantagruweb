@@ -1,0 +1,10 @@
+integration:
+  webhooks:
+    gargamelle:
+      on:
+        - DownloadDirectoryComplete
+      call:
+        url: https://nhuitn.pantagruweb.club/webhook/gargamelle/slskd?destinations={{ cookiecutter.discutons_username }}&library=4&types=DownloadDirectoryComplete&downloadDir={{ cookiecutter.coolection_dir }}/{{ cookiecutter.coolection_name }}/{{ cookiecutter.download_dir }}
+      timeout: 5000
+      retry:
+        attempts: 1

@@ -15,6 +15,7 @@ services:
       - "traefik.http.services.pantagruweb-slskd-{{ cookiecutter.coolection_name | lower }}.loadbalancer.server.port: 5030"
     volumes:
       - ${COOLECTIONS_DIR}/${COOLECTION_NAME}/Gargamelle:/app/downloads
+      - ./slskd.yml:/app/slskd.yml
       - /etc/localtime:/etc/localtime:ro
 
 networks:
