@@ -14,7 +14,7 @@ services:
       traefik.http.routers.pantagruweb-slskd-nelly.rule: Host(`${SUBDOMAIN}.pantagruweb.club`)
       traefik.http.services.pantagruweb-slskd-nelly.loadbalancer.server.port: 5030
     volumes:
-      - /mnt/remote/vip/Coolections/Audiothèque/${COOLECTIONS_USERNAME}/downloads/slskd:/data/downloads
+      - /mnt/remote/vip/Coolections/Audiothèque/${COOLECTIONS_USERNAME}/downloads/slskd:/app/downloads
       - /etc/localtime:/etc/localtime:roe
 
 networks:
