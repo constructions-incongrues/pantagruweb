@@ -4,7 +4,6 @@ services:
     container_name: booklore_server
     networks:
       - saltbox
-      - default
     env_file:
       - .env
     environment:
