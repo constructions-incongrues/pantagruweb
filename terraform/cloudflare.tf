@@ -93,7 +93,7 @@ resource "cloudflare_record" "mots" {
   content = "gabelle.pantagruweb.club"
   type    = "CNAME"
   ttl     = 300
-  proxied = false
+  proxied = true
 }
 
 resource "cloudflare_record" "gargamelle_wildcard" {
