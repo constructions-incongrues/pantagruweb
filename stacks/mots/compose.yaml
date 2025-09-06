@@ -2,6 +2,9 @@ services:
   booklore:
     image: booklore/booklore:${BOOKLORE_IMAGE_TAG}
     container_name: booklore_server
+    networks:
+      - saltbox
+      - default
     env_file:
       - .env
     environment:
@@ -11,6 +14,12 @@ services:
     depends_on:
       mariadb:
         condition: service_healthy
+    labels:
+      traefik.enable: true
+      com.github.saltbox.saltbox_managed: true
+      traefik.http.routers.pantagruweb-mots.entrypoints: web,websecure
+      traefik.http.routers.pantagruweb-mots.middlewares: globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker
+      traefik.http.routers.pantagruweb-mots.rule: Host(`mots.pantagruweb.club`)
     ports:
       - "6060:6060"
     volumes:
@@ -30,3 +39,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+networks:
+  saltbox:
+    external: true
