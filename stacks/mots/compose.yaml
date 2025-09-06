@@ -4,6 +4,7 @@ services:
     container_name: booklore_server
     networks:
       - saltbox
+      - default
     env_file:
       - .env
     environment:
@@ -15,6 +16,7 @@ services:
         condition: service_healthy
     labels:
       traefik.enable: true
+      traefik.network: saltbox
       com.github.saltbox.saltbox_managed: true
       traefik.http.routers.pantagruweb-mots.entrypoints: web,websecure
       traefik.http.routers.pantagruweb-mots.middlewares: globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker
