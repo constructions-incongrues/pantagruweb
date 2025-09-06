@@ -1,0 +1,13 @@
+web:
+  authentication:
+    disabled: true
+integration:
+  webhooks:
+    gargamelle:
+      on:
+        - DownloadDirectoryComplete
+      call:
+        url: https://nhuitn.pantagruweb.club/webhook/gargamelle/slskd?destinations=@gakona&library=39&types=DownloadDirectoryComplete&downloadDir=/mnt/remote/vip/Coolections/Audiothèque/Gakona/Gargamelle
+      timeout: 5000
+      retry:
+        attempts: 1

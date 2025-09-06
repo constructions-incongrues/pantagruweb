@@ -1,0 +1,26 @@
+[[stack]]
+name = "pantagruweb-slskd-gakona"
+tags = ["pantagruweb", "slskd"]
+[stack.config]
+server = "gabelle"
+links = [
+  "https://gakona-gargamelle.pantagruweb.club"
+]
+linked_repo = "pantagruweb-main"
+run_directory = "stacks/slskd-gakona"
+destroy_before_deploy = false
+environment = """
+PUID=1000
+PGID=1000
+TZ=Europe/Paris
+SLSKD_REMOTE_CONFIGURATION=true
+SLSKD_UMASK=0000
+SLSKD_FILE_PERMISSION_MODE=644
+SLSKD_REMOTE_FILE_MANAGEMENT=true
+SLSKD_SHARED_DIR=/downloads
+SLSKD_DOWNLOADS_DIR=/downloads
+COOLECTION_NAME=Gakona
+HASH=ntHoKSuOXCKC
+SUBDOMAIN=gakona-gargamelle
+COOLECTIONS_DIR=/mnt/remote/vip/Coolections/Audiothèque
+"""
