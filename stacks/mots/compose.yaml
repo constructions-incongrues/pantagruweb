@@ -18,7 +18,7 @@ services:
       - ${BOOKLORE_BOOKS_PATH}:/books
 
   mariadb:
-    image: lscr.io/linuxserver/mariadb:11.4
+    image: linuxserver/mariadb:11.4.8
     container_name: booklore_mariadb
     env_file:
       - .env
