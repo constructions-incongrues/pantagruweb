@@ -1,3 +1,5 @@
+feature:
+  swagger: true
 web:
   authentication:
     disabled: true
