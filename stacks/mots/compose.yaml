@@ -14,7 +14,7 @@ services:
     ports:
       - "6060:6060"
     volumes:
-      - ${BOOKLORE_DATA_PATH}:/app/data
+      - ./booklore:/app/data
       - ${BOOKLORE_BOOKS_PATH}:/books
 
   mariadb:
