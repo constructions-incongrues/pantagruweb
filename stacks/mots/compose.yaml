@@ -1,7 +1,6 @@
 services:
   booklore:
     image: booklore/booklore:${BOOKLORE_IMAGE_TAG}
-    container_name: booklore_server
     networks:
       - saltbox
       - default
