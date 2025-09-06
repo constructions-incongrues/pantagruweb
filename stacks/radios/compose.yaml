@@ -1,0 +1,61 @@
+services:
+  web:
+    container_name: azuracast
+    image: "ghcr.io/azuracast/azuracast:${AZURACAST_VERSION:-latest}"
+    networks:
+      - saltbox
+      - default
+    env_file:
+      - .env
+    labels:
+      - "com.centurylinklabs.watchtower.scope=azuracast"
+      - "traefik.enable: true"
+      - "com.github.saltbox.saltbox_managed: true"
+      - "traefik.http.routers.pantagruweb-radios.entrypoints: web,websecure"
+      - "traefik.http.routers.pantagruweb-radios.middlewares: globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker"
+      - "traefik.http.routers.pantagruweb-radios.rule: Host(`radios.pantagruweb.club`)"
+      - "traefik.http.services.pantagruweb-radios.loadbalancer.server.port: 5030"
+    volumes:
+      - station_data:/var/azuracast/stations
+      - backups:/var/azuracast/backups
+      - db_data:/var/lib/mysql
+      - www_uploads:/var/azuracast/storage/uploads
+      - shoutcast2_install:/var/azuracast/storage/shoutcast2
+      - stereo_tool_install:/var/azuracast/storage/stereo_tool
+      - geolite_install:/var/azuracast/storage/geoip
+      - sftpgo_data:/var/azuracast/storage/sftpgo
+      - acme:/var/azuracast/storage/acme
+    restart: unless-stopped
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    logging:
+      options:
+        max-size: "1m"
+        max-file: "5"
+ 
+  updater:
+    container_name: azuracast_updater
+    image: ghcr.io/azuracast/updater:latest
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    logging:
+      options:
+        max-size: "1m"
+        max-file: "5"
+ 
+volumes:
+  db_data: { }
+  acme: { }
+  shoutcast2_install: { }
+  stereo_tool_install: { }
+  geolite_install: { }
+  sftpgo_data: { }
+  station_data: { }
+  www_uploads: { }
+  backups: { }
+networks:
+  saltbox:
+    external: true
