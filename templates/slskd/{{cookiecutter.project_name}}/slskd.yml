@@ -7,7 +7,7 @@ integration:
       on:
         - DownloadDirectoryComplete
       call:
-        url: https://nhuitn.pantagruweb.club/webhook/gargamelle/slskd?destinations={{ cookiecutter.discutons_username }}&library={{ cookiecutter.library_id }}&types=DownloadDirectoryComplete&downloadDir={{ cookiecutter.coolection_dir }}/{{ cookiecutter.coolection_name }}/{{ cookiecutter.download_dir }}
+        url: https://nhuitn.pantagruweb.club/webhook/gargamelle/slskd?destinations={{ cookiecutter.discutons_username }}&library={{ cookiecutter.library_id }}&types=DownloadDirectoryComplete&downloadDir={{ cookiecutter.coolections_dir }}/{{ cookiecutter.coolection_name }}/{{ cookiecutter.download_dir }}
       timeout: 5000
       retry:
         attempts: 1
