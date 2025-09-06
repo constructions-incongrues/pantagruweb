@@ -4,7 +4,6 @@ services:
     image: "ghcr.io/azuracast/azuracast:${AZURACAST_VERSION:-latest}"
     networks:
       - saltbox
-      - default
     env_file:
       - .env
     labels:
