@@ -1,3 +1,8 @@
+feature:
+  swagger: true
+soulseek:
+  username: PantagruwebGakona
+  password: PantagruwebGakona
 web:
   authentication:
     disabled: true
