@@ -7,13 +7,13 @@ services:
     env_file:
       - .env
     labels:
-      - "com.centurylinklabs.watchtower.scope=azuracast"
-      - "traefik.enable: true"
-      - "com.github.saltbox.saltbox_managed: true"
-      - "traefik.http.routers.pantagruweb-radios.entrypoints: web,websecure"
-      - "traefik.http.routers.pantagruweb-radios.middlewares: globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker"
-      - "traefik.http.routers.pantagruweb-radios.rule: Host(`radios.pantagruweb.club`)"
-      - "traefik.http.services.pantagruweb-radios.loadbalancer.server.port: 5030"
+      com.centurylinklabs.watchtower.scope: azuracast
+      traefik.enable: true
+      com.github.saltbox.saltbox_managed: true
+      traefik.http.routers.pantagruweb-radios.entrypoints: web,websecure
+      traefik.http.routers.pantagruweb-radios.middlewares: globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker
+      traefik.http.routers.pantagruweb-radios.rule: Host(`radios.pantagruweb.club`)
+      traefik.http.services.pantagruweb-radios.loadbalancer.server.port: 80
     volumes:
       - station_data:/var/azuracast/stations
       - backups:/var/azuracast/backups
