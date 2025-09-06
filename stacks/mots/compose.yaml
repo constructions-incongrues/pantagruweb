@@ -26,7 +26,7 @@ services:
       - "6060:6060"
     volumes:
       - ./booklore:/app/data
-      - ${BOOKLORE_BOOKS_PATH}:/books
+      - /mnt/remote/vip/Coolections/Bibliothèque:/books
 
   mariadb:
     image: linuxserver/mariadb:11.4.8
