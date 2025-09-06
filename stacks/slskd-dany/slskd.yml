@@ -1,3 +1,6 @@
+web:
+  authentication:
+    disabled: true
 integration:
   webhooks:
     gargamelle:
