@@ -27,6 +27,7 @@ resource_path = [
   "stacks/slskd-nelly/stack.toml",
   "stacks/slskd-dany/stack.toml",
   "stacks/slskd-tristan/stack.toml",
+  "stacks/radios/stack.toml",
   "stacks/slskd-gakona/stack.toml"
 ]
 managed = false
