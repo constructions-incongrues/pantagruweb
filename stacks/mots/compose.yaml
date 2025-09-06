@@ -1,0 +1,32 @@
+services:
+  booklore:
+    image: booklore/booklore:${BOOKLORE_IMAGE_TAG}
+    container_name: booklore_server
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=jdbc:mariadb://mariadb:3306/${MYSQL_DATABASE}
+      - DATABASE_USERNAME=${MYSQL_USER}
+      - DATABASE_PASSWORD=${MYSQL_PASSWORD}
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    ports:
+      - "6060:6060"
+    volumes:
+      - ${BOOKLORE_DATA_PATH}:/app/data
+      - ${BOOKLORE_BOOKS_PATH}:/books
+
+  mariadb:
+    image: lscr.io/linuxserver/mariadb:11.4
+    container_name: booklore_mariadb
+    env_file:
+      - .env
+    volumes:
+      - ${MARIADB_CONFIG_PATH}:/config
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
