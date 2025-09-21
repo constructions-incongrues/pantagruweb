@@ -5,6 +5,8 @@ tags = ["pantagruweb", "hetzner"]
 address = "https://gabelle.pantagruweb.club:8120"
 enabled = true
 
+##
+
 [[repo]]
 name = "pantagruweb-main"
 tags = ["pantagruweb"]
@@ -24,12 +26,10 @@ linked_repo = "pantagruweb-main"
 resource_path = [
   "komodo.toml",
   "stacks/n8n/stack.toml",
-  "stacks/mots/stack.toml",
   "stacks/slskd-nelly/stack.toml",
   "stacks/slskd-dany/stack.toml",
   "stacks/slskd-tristan/stack.toml",
-  "stacks/radios/stack.toml",
-  "stacks/slskd-gakona/stack.toml"
+  "stacks/slskd-bender/stack.toml"
 ]
 managed = false
 match_tags = ["pantagruweb"]
