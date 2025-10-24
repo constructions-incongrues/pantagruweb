@@ -78,24 +78,6 @@ resource "cloudflare_record" "status" {
   proxied = false
 }
 
-resource "cloudflare_record" "radios" {
-  zone_id = data.cloudflare_zone.main.id
-  name    = "radios"
-  content = "gabelle.pantagruweb.club"
-  type    = "CNAME"
-  ttl     = 300
-  proxied = false
-}
-
-resource "cloudflare_record" "mots" {
-  zone_id = data.cloudflare_zone.main.id
-  name    = "mots"
-  content = "gabelle.pantagruweb.club"
-  type    = "CNAME"
-  ttl     = 300
-  proxied = true
-}
-
 resource "cloudflare_record" "gargamelle_wildcard" {
   zone_id = data.cloudflare_zone.main.id
   name    = "*.gargamelle"
