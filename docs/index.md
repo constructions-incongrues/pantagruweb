@@ -1,33 +1,78 @@
+## Vue d'ensembre
+
 ```mermaid
-flowchart TD
-    subgraph USER["Put.io partagé"]
-        A[Téléchargement] --> B["put.io/DOSSIER_PERSO
-            Stockage temporaire"]
-        B --> C{Visionnage}
-        C -->|À supprimer| D[Suppression]
-        C -->|À préserver| E["put.io/PANTAGRUWEB/Grisbis/DOSSIER_PERSO"]
+flowchart TB
+    A3["Trackers Torrent"] --> A
+    subgraph PUTIO["Put.io (socle propriétaire)"]
+        B["/DOSSIER_PERSO
+                Stockage temporaire"]
+        A["Téléchargement"]
+        C{"Visionnage"}
+        D["Suppression"]
+        E["/PANTAGRUWEB/Grisbis"]
+        A2["Collections thématiques"]
     end
-
-    E --> F[Transfert automatique des fichiers toutes les heures]
-
-    subgraph SHARED["Jean-Cloude partagé"]
-        F --> G["jeancloude/Coolections/ Filmothèque/Grisbis/NOM"]
-        G --> I[Préservation permanente]
+    subgraph NEXTCLOUD["Jean-Cloude
+    (socle libre Nextcloud)"]
+        G1["/Coolections/Filmothèque/Grisbis"]
+        F1["Transfert automatique
+        des fichiers"]
+        G2["/Coolections/Filmothèque/Collections Thématiques/"]
     end
+    subgraph PLEX["Archive (socle propriétaire Plex)"]
+        H1["Bibliothèque
+        Grisbis"]
+        H2["Bibliothèques
+        Thématiques"]
 
-    subgraph PLEX["¨Installation Plex dédiée et partagée"]
-        H[archive.pantagruweb.club]
+        J1["Visionnage"] --> H1
+        J1["Visionnage"] --> H2
+        J2["Partage"] --> H1
+        J2["Partage"] --> H2
     end
-
-    B -.->|Indexation automatique| H
-    G -.->|Indexation automatique| H
-
+    subgraph PANTAGRUWEB["Pantagruweb"]
+        PUTIO
+        NEXTCLOUD
+        PLEX
+    end
+    A --> B
+    B --> C
+    C -- À supprimer --> D
+    C -- À préserver --> E & A2
+    E --> F1
+    F1 --> G1 & G2
+    PLEX --> PANTAGRUWEB & PANTAGRUWEB & n2(["Confort"])
+    PUTIO --> PANTAGRUWEB & n3(["Efficacité"])
+    A2 --> F1
+    PLEX -- Indexation automatique --> NEXTCLOUD & PUTIO
+    NEXTCLOUD --> n4(["Préservation"])
     style B fill:#ff9999
-    style E fill:#ffcc99
-    style G fill:#99ccff
-    style H fill:#cc99ff
-    style F fill:#99ff99
-    style USER fill:#fff3e0,stroke:#ff9800
-    style SHARED fill:#e3f2fd,stroke:#2196f3
+    style E fill:#FFE0B2
+    style A2 fill:#FFE0B2
+    style G1 fill:#99ccff
+    style F1 fill:#99ff99
+    style G2 fill:#99ccff
+    style H1 fill:#cc99ff
+    style H2 fill:#cc99ff
+    style PUTIO stroke:#000000,fill:#FFF9C4
+    style NEXTCLOUD fill:#e3f2fd,stroke:#2196f3
     style PLEX fill:#f3e5f5,stroke:#9c27b0
+    style PANTAGRUWEB color:none,fill:transparent
+    style n2 fill:#FFD600
+    style n3 fill:#FFD600
+    style n4 fill:#FFD600
 ```
+
+## Organisation
+
+### Les Collections Thématiques
+
+### Les Grisbis
+
+## Les Outils
+
+### Put.io
+
+### Jean-Cloude
+
+### Archives
