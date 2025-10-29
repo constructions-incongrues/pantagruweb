@@ -22,5 +22,5 @@ SLSKD_DOWNLOADS_DIR=/app/downloads
 COOLECTION_NAME=Gakona
 HASH=ntHoKSuOXCKC
 SUBDOMAIN=gakona-gargamelle
-COOLECTIONS_DIR=/mnt/remote/vip/Coolections/Audiothèque
+COOLECTIONS_DIR=/mnt/remote/vip/Coolections-Audio/Audiothèque
 """
