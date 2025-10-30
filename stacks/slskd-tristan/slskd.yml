@@ -16,5 +16,5 @@ integration:
       retry:
         attempts: 1
 shares:
-  - directories:
-      - /app/downloads
+  directories:
+    - /app/downloads
