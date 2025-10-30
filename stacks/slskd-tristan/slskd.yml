@@ -1,3 +1,4 @@
+instance_name: tristan
 feature:
   swagger: true
 web:
