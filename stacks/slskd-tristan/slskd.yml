@@ -15,3 +15,6 @@ integration:
       timeout: 5000
       retry:
         attempts: 1
+shares:
+  - directories:
+      - /app/downloads
