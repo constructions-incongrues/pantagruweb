@@ -9,7 +9,7 @@ integration:
       on:
         - DownloadDirectoryComplete
       call:
-        url: https://nhuitn.pantagruweb.club/webhook/gargamelle/slskd?destinations=@tristan&library=4&types=DownloadDirectoryComplete&downloadDir=/Coolections-Audio/Audiothèque/Tristan/downloads/slskd
+        url: https://nhuitn.pantagruweb.club/webhook/gargamelle/slskd?destinations=@tristan&library=1131types=DownloadDirectoryComplete&downloadDir=/Coolections-Audio/Audiothèque/Tristan/downloads/slskd
         ignoreCertificateErrors: false
         headers: []
       timeout: 5000
