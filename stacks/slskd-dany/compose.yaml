@@ -14,7 +14,7 @@ services:
       traefik.http.routers.pantagruweb-slskd-dany.rule: Host(`${SUBDOMAIN}.pantagruweb.club`)
       traefik.http.services.pantagruweb-slskd-dany.loadbalancer.server.port: 5030
     volumes:
-      - /mnt/remote/vip/Coolections-Audio/Audiothèque/Dany mp3-flac/downloads/slskd:/app/downloads
+      - /mnt/remote/vip-audio/Audiothèque/Dany mp3-flac/downloads/slskd:/app/downloads
       - ./slskd.yml:/app/slskd.yml
       - /etc/localtime:/etc/localtime:ro
 
