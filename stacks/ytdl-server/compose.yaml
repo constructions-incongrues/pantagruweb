@@ -34,6 +34,7 @@ services:
   worker:
     image: registry.gitlab.com/adralioh/ytdl-server/worker:yt_dlp-ffmpeg
     restart: on-failure
+    user: ytdl
     depends_on:
       - database
       - broker
