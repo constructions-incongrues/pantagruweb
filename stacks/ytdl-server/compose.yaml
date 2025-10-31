@@ -1,8 +1,4 @@
 volumes:
-  # Videos will be downloaded to this volume
-  videos:
-  # ytdl-server cache dir
-  ytdl-cache:
   # PostgreSQL database files
   database:
   # Broker database files
@@ -24,7 +20,7 @@ services:
       YTDL_LOG_LEVEL: DEBUG
     volumes:
       - ./ytdl-server.yml:/config/ytdl-server.yml:ro
-      - ./cookies.txt:/cookies.txt:ro
+      - ./cookies.txt:/cookies.txt
     labels:
       - traefik.enable=true
       - traefik.http.routers.pantagruweb-ytdl-server.rule= Host(`ytdl.pantagruweb.club`)
@@ -45,9 +41,9 @@ services:
     # Copy the environment from the 'api' service
     environment: *ytdl-environment
     volumes:
-      - ./videos:/videos
-      - ytdl-cache:/cache
-      - ./cookies.txt:/cookies.txt:ro
+      - /mnt/volume-fsn1-1/ytdl-server/videos:/videos
+      - /mnt/volume-fsn1-1/ytdl-server/cache:/cache
+      - ./cookies.txt:/cookies.txt
 
   # Database / Celery backend
   database:
