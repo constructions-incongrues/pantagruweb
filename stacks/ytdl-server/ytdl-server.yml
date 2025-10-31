@@ -3,4 +3,4 @@ download_dir: /videos
 
 ytdl_opts:
   default_opts:
-    cookiefile: /cookies.txt
+    cookiefile: /tmp/cookies.txt
