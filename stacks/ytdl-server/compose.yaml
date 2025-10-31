@@ -22,6 +22,8 @@ services:
       # Needed if you're using a worker image that has yt-dlp
       YTDL_MODULE: yt_dlp
       YTDL_LOG_LEVEL: DEBUG
+    volumes:
+      - ./ytdl-server.yml:/config/ytdl-server.yml:ro
     labels:
       - traefik.enable=true
       - traefik.http.routers.pantagruweb-ytdl-server.rule= Host(`ytdl.pantagruweb.club`)
@@ -45,7 +47,6 @@ services:
       - ./videos:/videos
       - ytdl-cache:/cache
       - ./cookies.txt:/cookies.txt:ro
-      - ./ytdl-server.yml:/config/ytdl-server.yml:ro
 
   # Database / Celery backend
   database:
