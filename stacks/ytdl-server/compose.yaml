@@ -28,8 +28,6 @@ services:
       - traefik.http.services.ytdl-server.loadbalancer.server.port=8000
     networks:
       - saltbox
-      - database
-      - broker
 
   # Celery worker
   worker:
