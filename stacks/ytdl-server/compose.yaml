@@ -24,6 +24,7 @@ services:
       YTDL_LOG_LEVEL: DEBUG
     volumes:
       - ./ytdl-server.yml:/config/ytdl-server.yml:ro
+      - ./cookies.txt:/cookies.txt:ro
     labels:
       - traefik.enable=true
       - traefik.http.routers.pantagruweb-ytdl-server.rule= Host(`ytdl.pantagruweb.club`)
