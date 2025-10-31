@@ -23,7 +23,7 @@ services:
       YTDL_MODULE: yt_dlp
     labels:
       - traefik.enable=true
-      - traefik.http.routers.pantagruweb-ytdl-server.rule=ytdl.pantagruweb.club
+      - traefik.http.routers.pantagruweb-ytdl-server.rule= Host(`ytdl.pantagruweb.club`)
       - traefik.http.routers.pantagruweb-ytdl-server.entrypoints=web,websecure
       - traefik.http.services.pantagruweb-ytdl-server.loadbalancer.server.port=8000
     networks:
