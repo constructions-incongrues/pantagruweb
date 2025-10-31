@@ -41,8 +41,8 @@ services:
     environment: *ytdl-environment
     volumes:
       - /mnt/volume-fsn1-1/ytdl-server/videos:/videos
-      - /mnt/volume-fsn1-1/ytdl-server/cache:/cache
-      - ./cookies.txt:/cookies.txt
+      - /mnt/volume-fsn1-1/ytdl-server/cache:/.cache
+      - ./cookies.txt:/tmp/cookies.txt
 
   # Database / Celery backend
   database:
