@@ -44,7 +44,7 @@ services:
       - ./videos:/videos
       - ytdl-cache:/cache
       - ./cookies.txt:/cookies.txt:ro
-      - ./ytdl-server.yml-:/config/ytdl-server.yml:ro
+      - ./ytdl-server.yml:/config/ytdl-server.yml:ro
 
   # Database / Celery backend
   database:
