@@ -2,3 +2,7 @@
 ytdl_opts:
   default_opts:
     cookiefile: /cookies.txt
+
+custom_opts:
+  default_opts:
+    cookiefile: /cookies.txt
