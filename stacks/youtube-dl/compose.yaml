@@ -1,7 +1,6 @@
 services:
   youtube-dl:
     image: kmb32123/youtube-dl-server
-    restart: always
     labels:
       - traefik.enable=true
       - traefik.http.routers.pantagruweb-n8n.rule=Host(`${SUBDOMAIN}.${DOMAIN_NAME}`)
