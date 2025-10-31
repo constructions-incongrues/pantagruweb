@@ -3,9 +3,9 @@ services:
     image: kmb32123/youtube-dl-server
     labels:
       - traefik.enable=true
-      - traefik.http.routers.pantagruweb-n8n.rule=Host(`${SUBDOMAIN}.${DOMAIN_NAME}`)
-      - traefik.http.routers.pantagruweb-n8n.entrypoints=web,websecure
-      - traefik.http.services.n8n.loadbalancer.server.port=8080
+      - traefik.http.routers.pantagruweb-youtube-dl.rule=Host(`${SUBDOMAIN}.${DOMAIN_NAME}`)
+      - traefik.http.routers.pantagruweb-youtube-dl.entrypoints=web,websecure
+      - traefik.http.services.youtube-dl.loadbalancer.server.port=8080
     volumes:
       - ./youtube-dl:/youtube-dl
     networks:
