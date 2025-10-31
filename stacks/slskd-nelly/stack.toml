@@ -14,7 +14,7 @@ pre_deploy.command = """
 COOLECTIONS_USERNAME=nelly
 SEED=$(date +%s)
 SUBDOMAIN=nelly-gargamelle
-COOLECTIONS_PATH=/mnt/remote/vip/Coolections-Audio/Audiothèque
+COOLECTIONS_PATH=/mnt/remote/vip-audio/Audiothèque
 echo > seed.env
 echo "COOLECTIONS_PATH=${COOLECTIONS_PATH}" >> seed.env
 echo "COOLECTIONS_USERNAME=${COOLECTIONS_USERNAME}" > seed.env

@@ -1,0 +1,92 @@
+services:
+  ytdl-server:
+    image: kmb32123/ytdl-server-server
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.pantagruweb-ytdl-server.rule=Host(`${SUBDOMAIN}.${DOMAIN_NAME}`)
+      - traefik.http.routers.pantagruweb-ytdl-server.entrypoints=web,websecure
+      - traefik.http.services.ytdl-server.loadbalancer.server.port=8080
+    volumes:
+      - ./ytdl-server:/ytdl-server
+      - ./cookies.txt:/cookies.txt:ro
+    networks:
+      - saltbox
+    restart: unless-stopped
+
+volumes:
+  n8n_data:
+
+
+
+---
+volumes:
+  # Videos will be downloaded to this volume
+  videos:
+  # ytdl-server cache dir
+  ytdl-cache:
+  # PostgreSQL database files
+  database:
+  # Broker database files
+  broker-data:
+
+services:
+  # REST API
+  api:
+    image: registry.gitlab.com/adralioh/ytdl-server/api:latest
+    restart: on-failure
+    depends_on:
+      - database
+      - broker
+    environment: &ytdl-environment
+      YTDL_DATABASE_URI: postgresql://postgres:password@database/ytdl
+      YTDL_CELERY_BROKER_URL: amqp://broker
+      # Needed if you're using a worker image that has yt-dlp
+      YTDL_MODULE: yt_dlp
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.pantagruweb-ytdl-server.rule=Host(`${SUBDOMAIN}.${DOMAIN_NAME}`)
+      - traefik.http.routers.pantagruweb-ytdl-server.entrypoints=web,websecure
+      - traefik.http.services.ytdl-server.loadbalancer.server.port=8000
+    networks:
+      - saltbox
+      - database
+      - broker
+
+  # Celery worker
+  worker:
+    image: registry.gitlab.com/adralioh/ytdl-server/worker:latest
+    restart: on-failure
+    depends_on:
+      - database
+      - broker
+    # Copy the environment from the 'api' service
+    environment: *ytdl-environment
+    volumes:
+      - ./videos:/videos
+      - ytdl-cache:/cache
+      - ./cookies.txt:/cookies.txt:ro
+
+  # Database / Celery backend
+  database:
+    image: postgres:alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ytdl
+    volumes:
+      - database:/var/lib/postgresql/data
+
+  # Celery broker.
+  # You can also use a different type (such as Redis) as long as it's supported
+  # by Celery
+  broker:
+    image: rabbitmq:alpine
+    # Prevent RabbitMQ from creating a new database every time the container is
+    # recreated
+    hostname: ytdl-broker
+    volumes:
+      - broker-data:/var/lib/rabbitmq
+
+networks:
+  saltbox:
+    external: true
