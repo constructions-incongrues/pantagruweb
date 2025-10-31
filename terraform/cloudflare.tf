@@ -60,6 +60,15 @@ resource "cloudflare_record" "nhuitn" {
   proxied = false
 }
 
+resource "cloudflare_record" "ytp" {
+  zone_id = data.cloudflare_zone.main.id
+  name    = "ytp"
+  content = "gabelle.pantagruweb.club"
+  type    = "CNAME"
+  ttl     = 300
+  proxied = false
+}
+
 resource "cloudflare_record" "archive" {
   zone_id = data.cloudflare_zone.main.id
   name    = "archive"
