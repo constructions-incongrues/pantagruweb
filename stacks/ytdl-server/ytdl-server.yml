@@ -4,4 +4,3 @@ download_dir: /videos
 ytdl_opts:
   default_opts:
     cookiefile: /tmp/cookies.txt
-    writeinfojson: true
