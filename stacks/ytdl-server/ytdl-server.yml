@@ -1,3 +1,4 @@
 ---
 ytdl_opts:
   default_opts:
+    cookiefile: /cookies.txt
