@@ -49,7 +49,7 @@ services:
     image: busybox:latest
     volumes:
       - ./cookies.txt:/tmp/cookies.txt
-    command: ["chmod", "777", "/tmp/cookies.txt"]
+    command: ["chmod", "777", "/tmp/cookies.txt", "&&", "exit", "0"]
 
   # Database / Celery backend
   database:
