@@ -33,7 +33,7 @@ services:
 
   # Celery worker
   worker:
-    image: registry.gitlab.com/adralioh/ytdl-server/worker:latest
+    image: registry.gitlab.com/adralioh/ytdl-server/worker:yt_dlp-ffmpeg
     restart: on-failure
     depends_on:
       - database
