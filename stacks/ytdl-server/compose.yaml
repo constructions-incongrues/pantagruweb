@@ -40,7 +40,7 @@ services:
     # Copy the environment from the 'api' service
     environment: *ytdl-environment
     volumes:
-      - /mnt/volume-fsn1-1/ytdl-server/videos:/videos
+      - /mnt/remote/r2-musiquesincongrues-flarum/ytdl/videos:/videos
       - /mnt/volume-fsn1-1/ytdl-server/cache:/.cache
       - ./cookies.txt:/tmp/cookies.txt
 
