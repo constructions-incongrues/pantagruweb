@@ -17,7 +17,6 @@ services:
       YTDL_CELERY_BROKER_URL: amqp://broker
       # Needed if you're using a worker image that has yt-dlp
       YTDL_MODULE: yt_dlp
-      YTDL_LOG_LEVEL: INFO
     volumes:
       - ./ytdl-server.yml:/config/ytdl-server.yml:ro
     labels:
