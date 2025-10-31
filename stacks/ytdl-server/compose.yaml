@@ -22,12 +22,11 @@ services:
       # Needed if you're using a worker image that has yt-dlp
       YTDL_MODULE: yt_dlp
     labels:
-      - traefik.enable=true
-      - traefik.http.routers.pantagruweb-ytdl-server.rule=Host(`${SUBDOMAIN}.${DOMAIN_NAME}`)
-      - traefik.http.routers.pantagruweb-ytdl-server.entrypoints=web,websecure
-      - traefik.http.services.pantagruweb-ytdl-server.loadbalancer.server.port=8000
+      caddy: ytdl.pantagruweb.club
+      caddy.reverse_proxy: "{{upstreams 5678}}"
     networks:
-      - saltbox
+      - caddy
+      - default
 
   # Celery worker
   worker:
@@ -65,5 +64,5 @@ services:
       - broker-data:/var/lib/rabbitmq
 
 networks:
-  saltbox:
+  caddy:
     external: true

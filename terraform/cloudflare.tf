@@ -60,9 +60,9 @@ resource "cloudflare_record" "nhuitn" {
   proxied = false
 }
 
-resource "cloudflare_record" "ytp" {
+resource "cloudflare_record" "ytdl" {
   zone_id = data.cloudflare_zone.main.id
-  name    = "ytp"
+  name    = "ytdl"
   content = "gabelle.pantagruweb.club"
   type    = "CNAME"
   ttl     = 300
