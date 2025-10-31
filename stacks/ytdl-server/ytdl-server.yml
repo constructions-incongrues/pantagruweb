@@ -4,4 +4,4 @@ ytdl_opts:
     cookiefile: /cookies.txt
 
 download_dir: /videos
-cachedir: /cache
+cache_dir: /cache
