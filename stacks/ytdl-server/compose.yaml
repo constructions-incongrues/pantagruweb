@@ -48,7 +48,7 @@ services:
     image: busybox:latest
     volumes:
       - ./cookies.txt:/tmp/cookies.txt
-    command: ["/bin/sh", "-c", "chmod 777 /tmp/cookies.txt && exit 0"]
+    command: ["/bin/sh", "-c", "chmod 777 /tmp/cookies.txt && sleep infinity"]
 
   # Database / Celery backend
   database:
