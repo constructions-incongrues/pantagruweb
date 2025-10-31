@@ -6,3 +6,7 @@ ytdl_opts:
     cookiefile: /cookies.txt
     cache_dir: /cache
 
+custom_opts:
+  default_opts:
+    cache_dir: /cache
+    cachedir: /cache
