@@ -1,16 +1,21 @@
-## Add your compose file here
 services:
-  hello_world:
-    image: hello-world
-    # networks:
-    #   - default
-    # ports:
-    #   - 3000:3000
-    # volumes:
-    #   - data:/data
+  youtube-dl:
+    image: kmb32123/youtube-dl-server
+    restart: always
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.pantagruweb-n8n.rule=Host(`${SUBDOMAIN}.${DOMAIN_NAME}`)
+      - traefik.http.routers.pantagruweb-n8n.entrypoints=web,websecure
+      - traefik.http.services.n8n.loadbalancer.server.port=8080
+    volumes:
+      - ./youtube-dl:/youtube-dl
+    networks:
+      - saltbox
+    restart: unless-stopped
 
-# networks:
-#   default: {}
+volumes:
+  n8n_data:
 
-# volumes:
-#   data:
+networks:
+  saltbox:
+    external: true
