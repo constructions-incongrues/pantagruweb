@@ -1,24 +1,3 @@
-services:
-  ytdl-server:
-    image: kmb32123/ytdl-server-server
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.pantagruweb-ytdl-server.rule=Host(`${SUBDOMAIN}.${DOMAIN_NAME}`)
-      - traefik.http.routers.pantagruweb-ytdl-server.entrypoints=web,websecure
-      - traefik.http.services.ytdl-server.loadbalancer.server.port=8080
-    volumes:
-      - ./ytdl-server:/ytdl-server
-      - ./cookies.txt:/cookies.txt:ro
-    networks:
-      - saltbox
-    restart: unless-stopped
-
-volumes:
-  n8n_data:
-
-
-
----
 volumes:
   # Videos will be downloaded to this volume
   videos:
