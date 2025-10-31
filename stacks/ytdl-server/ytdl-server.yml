@@ -1,7 +1,8 @@
 ---
+download_dir: /videos
+
 ytdl_opts:
   default_opts:
     cookiefile: /cookies.txt
+    cache_dir: /cache
 
-download_dir: /videos
-cache_dir: /cache
