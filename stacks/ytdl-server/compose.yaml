@@ -28,6 +28,7 @@ services:
       - traefik.http.services.pantagruweb-ytdl-server.loadbalancer.server.port=8000
     networks:
       - saltbox
+      - default
 
   # Celery worker
   worker:
