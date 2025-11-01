@@ -9,10 +9,10 @@ services:
     labels:
       traefik.enable: true
       com.github.saltbox.saltbox_managed: true
-      traefik.http.routers.pantagruweb-slskd-nelly.entrypoints: web,websecure
-      traefik.http.routers.pantagruweb-slskd-nelly.middlewares: globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker
-      traefik.http.routers.pantagruweb-slskd-nelly.rule: Host(`lapin-gargamelle.pantagruweb.club`)
-      traefik.http.services.pantagruweb-slskd-nelly.loadbalancer.server.port: 5030
+      traefik.http.routers.pantagruweb-slskd-lapin.entrypoints: web,websecure
+      traefik.http.routers.pantagruweb-slskd-lapin.middlewares: globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker
+      traefik.http.routers.pantagruweb-slskd-lapin.rule: Host(`lapin-gargamelle.pantagruweb.club`)
+      traefik.http.services.pantagruweb-slskd-lapin.loadbalancer.server.port: 5030
     volumes:
       - /mnt/remote/vip-audio/Audiothèque/Mange Lapin/__Gargamelle:/app/downloads
       - ./slskd.yml:/app/slskd.yml
