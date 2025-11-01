@@ -1,0 +1,21 @@
+instance_name: lapin
+feature:
+  swagger: true
+web:
+  authentication:
+    disabled: true
+integration:
+  webhooks:
+    gargamelle:
+      on:
+        - DownloadDirectoryComplete
+      call:
+        url: https://nhuitn.pantagruweb.club/webhook/gargamelle/slskd?destinations=@Yvan&library=9&types=DownloadDirectoryComplete&downloadDir=/Coolections-Audio/Audiothèque/Tristan/downloads/slskd
+        ignoreCertificateErrors: false
+        headers: []
+      timeout: 5000
+      retry:
+        attempts: 1
+shares:
+  directories:
+    - /app/downloads
