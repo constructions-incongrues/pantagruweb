@@ -29,7 +29,7 @@ resource_path = [
   "stacks/slskd-nelly/stack.toml",
   "stacks/slskd-dany/stack.toml",
   "stacks/slskd-tristan/stack.toml",
-  "stacks/slskd-bender/stack.toml"
+  "stacks/slskd-lapin/stack.toml"
 ]
 managed = false
 match_tags = ["pantagruweb"]
