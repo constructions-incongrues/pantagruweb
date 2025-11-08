@@ -78,6 +78,15 @@ resource "cloudflare_record" "archive" {
   proxied = false
 }
 
+resource "cloudflare_record" "papiers" {
+  zone_id = data.cloudflare_zone.main.id
+  name    = "papiers"
+  content = "gabelle.pantagruweb.club"
+  type    = "CNAME"
+  ttl     = 300
+  proxied = false
+}
+
 resource "cloudflare_record" "status" {
   zone_id = data.cloudflare_zone.main.id
   name    = "status"
