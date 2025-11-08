@@ -3,124 +3,61 @@ provider "cloudflare" {
   api_token = var.cloudflare_api_token
 }
 
-# Variables
-variable "cloudflare_api_token" {
-  description = "Token API Cloudflare"
-  type        = string
-  sensitive   = true
-}
-
-variable "domain_name" {
-  description = "Nom de domaine principal"
-  type        = string
-  default     = "example.com"
-}
-
-variable "zone_id" {
-  description = "ID de la zone Cloudflare"
-  type        = string
-}
-
-variable "cloudflare_account_id" {
-  description = "ID du compte Cloudflare"
-  type        = string
-}
-
 # Data source pour récupérer les informations de la zone
 data "cloudflare_zone" "main" {
   zone_id = var.zone_id
 }
 
+# Enregistrement A pour gabelle (serveur principal)
 resource "cloudflare_record" "gabelle" {
-  zone_id = data.cloudflare_zone.main.id
+  zone_id = local.zone_id
   name    = "gabelle"
   content = data.hcloud_server.gabelle.ipv4_address
   type    = "A"
-  ttl     = 300
-  proxied = false
+  ttl     = local.default_ttl
+  proxied = local.default_proxied
 }
 
+# Enregistrements CNAME pointant vers gabelle
+resource "cloudflare_record" "gabelle_cnames" {
+  for_each = local.gabelle_cnames
 
-# Enregistrement CNAME
-resource "cloudflare_record" "panurge" {
-  zone_id = data.cloudflare_zone.main.id
-  name    = "panurge"
-  content = "gabelle.pantagruweb.club"
+  zone_id = local.zone_id
+  name    = each.value
+  content = local.gabelle_target
   type    = "CNAME"
-  ttl     = 300
-  proxied = false
+  ttl     = local.default_ttl
+  proxied = local.default_proxied
 }
 
-resource "cloudflare_record" "nhuitn" {
-  zone_id = data.cloudflare_zone.main.id
-  name    = "nhuitn"
-  content = "gabelle.pantagruweb.club"
+# Enregistrements CNAME pointant vers GitHub Pages
+resource "cloudflare_record" "github_pages_cnames" {
+  for_each = local.github_pages_cnames
+
+  zone_id = local.zone_id
+  name    = each.value
+  content = local.github_target
   type    = "CNAME"
-  ttl     = 300
-  proxied = false
+  ttl     = local.default_ttl
+  proxied = local.default_proxied
 }
 
-resource "cloudflare_record" "ytdl" {
-  zone_id = data.cloudflare_zone.main.id
-  name    = "ytdl"
-  content = "gabelle.pantagruweb.club"
-  type    = "CNAME"
-  ttl     = 300
-  proxied = false
-}
-
-resource "cloudflare_record" "archive" {
-  zone_id = data.cloudflare_zone.main.id
-  name    = "archive"
-  content = "gabelle.pantagruweb.club"
-  type    = "CNAME"
-  ttl     = 300
-  proxied = false
-}
-
-resource "cloudflare_record" "papiers" {
-  zone_id = data.cloudflare_zone.main.id
-  name    = "papiers"
-  content = "gabelle.pantagruweb.club"
-  type    = "CNAME"
-  ttl     = 300
-  proxied = false
-}
-
-resource "cloudflare_record" "status" {
-  zone_id = data.cloudflare_zone.main.id
-  name    = "status"
-  content = "constructions-incongrues.github.io"
-  type    = "CNAME"
-  ttl     = 300
-  proxied = false
-}
-
+# Enregistrement wildcard pour gargamelle
 resource "cloudflare_record" "gargamelle_wildcard" {
-  zone_id = data.cloudflare_zone.main.id
+  zone_id = local.zone_id
   name    = "*.gargamelle"
-  content = "gabelle.pantagruweb.club"
+  content = local.gabelle_target
   type    = "CNAME"
-  ttl     = 300
-  proxied = false
+  ttl     = local.default_ttl
+  proxied = local.default_proxied
 }
 
+# Enregistrement wildcard principal
 resource "cloudflare_record" "wildcard" {
-  zone_id = data.cloudflare_zone.main.id
+  zone_id = local.zone_id
   name    = "*"
-  content = "gabelle.pantagruweb.club"
+  content = local.gabelle_target
   type    = "CNAME"
-  ttl     = 300
-  proxied = false
-}
-
-
-# Outputs
-output "zone_info" {
-  description = "Informations sur la zone"
-  value = {
-    zone_id = data.cloudflare_zone.main.id
-    name    = data.cloudflare_zone.main.name
-    status  = data.cloudflare_zone.main.status
-  }
+  ttl     = local.default_ttl
+  proxied = local.default_proxied
 }
