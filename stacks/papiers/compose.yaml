@@ -59,6 +59,7 @@ services:
       traefik.http.routers.pantagruweb-papiers.middlewares: globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker
       traefik.http.routers.pantagruweb-papiers.rule: Host(`papiers.pantagruweb.club`)
       traefik.http.services.pantagruweb-papiers.loadbalancer.server.port: 8000
+      traefik.docker.network: saltbox
     networks:
       - saltbox
       - default
