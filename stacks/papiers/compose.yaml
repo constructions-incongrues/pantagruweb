@@ -41,8 +41,6 @@ services:
       - broker
       - gotenberg
       - tika
-    ports:
-      - "8000:8000"
     volumes:
       - data:/usr/src/paperless/data
       - media:/usr/src/paperless/media
@@ -60,7 +58,7 @@ services:
       traefik.http.routers.pantagruweb-papiers.entrypoints: web,websecure
       traefik.http.routers.pantagruweb-papiers.middlewares: globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker
       traefik.http.routers.pantagruweb-papiers.rule: Host(`papiers.pantagruweb.club`)
-      traefik.http.services.pantagruweb-papiers.loadbalancer.server.port: 5030
+      traefik.http.services.pantagruweb-papiers.loadbalancer.server.port: 8000
     networks:
       - saltbox
       - default
