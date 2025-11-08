@@ -56,10 +56,14 @@ services:
       traefik.enable: true
       com.github.saltbox.saltbox_managed: true
       traefik.http.routers.pantagruweb-papiers.entrypoints: web,websecure
-      traefik.http.routers.pantagruweb-papiers.middlewares: globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker
+      traefik.http.routers.pantagruweb-papiers.middlewares: globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker,pantagruweb-cors@docker
       traefik.http.routers.pantagruweb-papiers.rule: Host(`papiers.pantagruweb.club`)
       traefik.http.services.pantagruweb-papiers.loadbalancer.server.port: 8000
       traefik.docker.network: saltbox
+      traefik.http.middlewares.pantagruweb-cors.headers.accesscontrolallowmethods: GET
+      traefik.http.middlewares.pantagruweb-cors.headers.accesscontrolallowheaders: "*"
+      traefik.http.middlewares.pantagruweb-cors.headers.accesscontrolalloworiginlist: "*"
+      traefik.http.middlewares.pantagruweb-cors.headers.addvaryheader: true
     networks:
       - saltbox
       - default
