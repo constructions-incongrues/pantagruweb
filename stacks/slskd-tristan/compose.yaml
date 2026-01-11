@@ -67,10 +67,7 @@ services:
       traefik.http.routers.pantagruweb-soulsync-tristan.entrypoints: web,websecure
       traefik.http.routers.pantagruweb-soulsync-tristan.middlewares: globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker
       traefik.http.routers.pantagruweb-soulsync-tristan.rule: Host(`tristan-soulsync.pantagruweb.club`)
-      traefik.http.services.pantagruweb-soulsync-tristan.loadbalancer.server.port: 8008
-      traefik.http.routers.pantagruweb-soulsync-spotify-tristan.entrypoints: web,websecure
-      traefik.http.routers.pantagruweb-soulsync-spotify-tristan.rule: Host(`tristan-soulsync-spotify.pantagruweb.club`)
-      traefik.http.services.pantagruweb-soulsync-spotify-tristan.loadbalancer.server.port: 8888
+      traefik.http.services.pantagruweb-soulsync-tristan.loadbalancer.server.port: 800
 
 volumes:
   soulsync_database:
