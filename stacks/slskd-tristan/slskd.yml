@@ -4,6 +4,13 @@ feature:
 web:
   authentication:
     disabled: true
+    jwt:
+      key: ~
+      ttl: 604800000
+    api_keys:
+      soulsync:
+        key: "^rM~Z30L@-ii99#,h?impk%}:^Uo7i+~}p^^z@4K=D!_#TYg]_K~54q4^fxF:nHL"
+        cidr: 0.0.0.0/0,::/0
 integration:
   webhooks:
     gargamelle:
