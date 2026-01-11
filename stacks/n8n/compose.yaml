@@ -3,23 +3,23 @@ services:
     image: docker.n8n.io/n8nio/n8n:1.123.11
     restart: always
     labels:
-      - traefik.enable=true
-      - com.github.saltbox.saltbox_managed=true
-      - traefik.http.routers.pantagruweb-n8n.rule=Host(`${SUBDOMAIN}.${DOMAIN_NAME}`)
-      - traefik.http.routers.pantagruweb-n8n.entrypoints=web,websecure
-      - traefik.http.routers.pantagruweb-n8n.middlewares=globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker
-      - traefik.http.services.pantagruweb-n8n.loadbalancer.server.port=5678
+      traefik.enable: true
+      com.github.saltbox.saltbox_managed: true
+      traefik.http.routers.pantagruweb-n8n.rule: Host(`${SUBDOMAIN}.${DOMAIN_NAME}`)
+      traefik.http.routers.pantagruweb-n8n.entrypoints: web,websecure
+      traefik.http.routers.pantagruweb-n8n.middlewares: globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker
+      traefik.http.services.pantagruweb-n8n.loadbalancer.server.port: 5678
     environment:
-      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
-      - N8N_HOST=${SUBDOMAIN}.${DOMAIN_NAME}
-      - N8N_PORT=5678
-      - N8N_PROTOCOL=https
-      - N8N_RUNNERS_ENABLED=true
-      - N8N_PROXY_HOPS=1
-      - NODE_ENV=production
-      - WEBHOOK_URL=https://${SUBDOMAIN}.${DOMAIN_NAME}/
-      - GENERIC_TIMEZONE=${GENERIC_TIMEZONE}
-      - TZ=${GENERIC_TIMEZONE}
+      N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: true
+      N8N_HOST: ${SUBDOMAIN}.${DOMAIN_NAME}
+      N8N_PORT: 5678
+      N8N_PROTOCOL: https
+      N8N_RUNNERS_ENABLED: true
+      N8N_PROXY_HOPS: 1
+      NODE_ENV: production
+      WEBHOOK_URL: https://${SUBDOMAIN}.${DOMAIN_NAME}/
+      GENERIC_TIMEZONE: ${GENERIC_TIMEZONE}
+      TZ: ${GENERIC_TIMEZONE}
     volumes:
       - n8n_data:/home/node/.n8n
       - ./local-files:/files
