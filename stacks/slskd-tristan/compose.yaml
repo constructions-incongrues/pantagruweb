@@ -20,6 +20,7 @@ services:
 
   soulsync:
     image: boulderbadgedad/soulsync:latest
+    env_file: seed.env
     environment:
       # User/Group ID configuration
       - PUID=1000
@@ -45,6 +46,7 @@ services:
       # Use named volume for database persistence (separate from host database)
       # NOTE: Changed from /app/database to /app/data to avoid overwriting Python package
       - soulsync_database:/app/data
+      - /mnt/remote/vip-audio/Audiothèque/${COOLECTIONS_USERNAME}/downloads/slskd:/app/downloads
       # IMPORTANT: Mount the drives containing your download and transfer folders
       # If your download/transfer paths are on E: drive, mount E: drive:
       #- /mnt/e:/host/mnt/e:rw
@@ -57,6 +59,7 @@ services:
       # Add additional drive mounts as needed for your specific setup
       # Optional: Mount your music library for Plex/Jellyfin access
       #- /path/to/your/music:/music:ro
+      - /mnt/remote/vip-audio/Audiothèque/${COOLECTIONS_USERNAME}:/music:ro
     extra_hosts:
       # Allow container to reach host services
       - "host.docker.internal:host-gateway"
