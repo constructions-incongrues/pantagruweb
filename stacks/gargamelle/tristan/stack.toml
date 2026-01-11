@@ -4,8 +4,8 @@ tags = ["pantagruweb", "gargamelle"]
 [stack.config]
 server = "gabelle"
 links = [
-  "https://slskd.tristan.pantagruweb.club",
-  "https://lidarr.tristan.pantagruweb.club",
+  "https://slskd-tristan.pantagruweb.club",
+  "https://lidarr-tristan.pantagruweb.club",
 ]
 linked_repo = "pantagruweb-main"
 run_directory = "stacks/gargamelle/tristan"
@@ -14,7 +14,7 @@ additional_env_files = ["seed.env"]
 pre_deploy.command = """
 COOLECTIONS_USERNAME=Tristan
 SEED=$(date +%s)
-SUBDOMAIN=slskd.tristan
+SUBDOMAIN=slskd-tristan
 echo > seed.env
 echo "COOLECTIONS_PATH=${COOLECTIONS_PATH}" >> seed.env
 echo "COOLECTIONS_USERNAME=${COOLECTIONS_USERNAME}" >> seed.env
