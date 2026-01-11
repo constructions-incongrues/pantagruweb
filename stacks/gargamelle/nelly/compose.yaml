@@ -40,6 +40,39 @@ services:
       - saltbox
     env_file: seed.env
 
+  youtubarr-redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    networks:
+      - saltbox
+    volumes:
+      - ./youtubarr/redis:/data
+
+  youtubarr:
+    image: ghcr.io/diredirecrocs/youtubarr:main
+    restart: unless-stopped
+    depends_on:
+      - youtubarr-redis
+    environment:
+      - SECRET_KEY=${YOUTUBARR_SECRET_KEY}
+      - CELERY_BROKER_URL=redis://youtubarr-redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://youtubarr-redis:6379/0
+      - LIDARR_URL=http://lidarr:8686
+      - LIDARR_TOKEN=${LIDARR_TOKEN}
+      - ALLOWED_HOSTS=*
+    volumes:
+      - ./youtubarr/data:/data
+    networks:
+      - saltbox
+    labels:
+      traefik.enable: true
+      com.github.saltbox.saltbox_managed: true
+      traefik.http.routers.pantagruweb-gargamelle-youtubarr-nelly.entrypoints: web,websecure
+      traefik.http.routers.pantagruweb-gargamelle-youtubarr-nelly.middlewares: globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker
+      traefik.http.routers.pantagruweb-gargamelle-youtubarr-nelly.rule: Host(`youtubarr-${SUBDOMAIN}.pantagruweb.club`)
+      traefik.http.services.pantagruweb-gargamelle-youtubarr-nelly.loadbalancer.server.port: 8000
+    env_file: seed.env
+
 networks:
   saltbox:
     external: true
