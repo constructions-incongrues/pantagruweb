@@ -72,7 +72,7 @@ services:
       com.github.saltbox.saltbox_managed: true
       traefik.http.routers.pantagruweb-soulsync-tristan.entrypoints: web,websecure
       traefik.http.routers.pantagruweb-soulsync-tristan.middlewares: globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker
-      traefik.http.routers.pantagruweb-soulsync-tristan.rule: Host(`soulsync-tristan.pantagruweb.club`)
+      traefik.http.routers.pantagruweb-soulsync-tristan.rule: Host(`tristan-soulsync.pantagruweb.club`)
       traefik.http.services.pantagruweb-soulsync-tristan.loadbalancer.server.port: 8008
 
 
