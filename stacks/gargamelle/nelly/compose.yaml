@@ -60,6 +60,7 @@ services:
       - LIDARR_URL=http://lidarr:8686
       - LIDARR_TOKEN=${LIDARR_TOKEN}
       - ALLOWED_HOSTS=*
+      - YOUTUBE_API_KEY=AIzaSyCA0dEpsqw4CcEsMhXMdN27-StntKZQ2D4
     volumes:
       - ./youtubarr/data:/data
     networks:
