@@ -19,8 +19,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
 
   lidarr:
-    image: lscr.io/linuxserver/lidarr:latest
-    container_name: lidarr
+    image: ghcr.io/hotio/lidarr:pr-plugins
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
