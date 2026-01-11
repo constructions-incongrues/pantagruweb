@@ -7,6 +7,7 @@ services:
       - com.github.saltbox.saltbox_managed=true
       - traefik.http.routers.pantagruweb-n8n.rule=Host(`${SUBDOMAIN}.${DOMAIN_NAME}`)
       - traefik.http.routers.pantagruweb-n8n.entrypoints=web,websecure
+      - traefik.http.routers.pantagruweb-n8n.middlewares=globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker
       - traefik.http.routers.pantagruweb-n8n.service=pantagruweb-n8n
       - traefik.http.services.pantagruweb-n8n.loadbalancer.server.port=5678
     environment:
