@@ -29,8 +29,6 @@ services:
       - ./lidarr:/config
       - /mnt/remote/vip-audio/Audiothèque/${COOLECTIONS_USERNAME}:/music
       - /mnt/remote/vip-audio/Audiothèque/${COOLECTIONS_USERNAME}/downloads/slskd:/app/downloads
-    ports:
-      - 8686:8686
     restart: unless-stopped
     labels:
       traefik.enable: true
