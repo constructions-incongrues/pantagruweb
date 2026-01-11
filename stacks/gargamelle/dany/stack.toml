@@ -19,8 +19,8 @@ echo > seed.env
 echo "COOLECTIONS_PATH=${COOLECTIONS_PATH}" >> seed.env
 echo "COOLECTIONS_USERNAME=\"${COOLECTIONS_USERNAME}\"" >> seed.env
 echo "SEED=${SEED}" >> seed.env
-echo "SLSKD_SLSK_PASSWORD=Pantagruweb${COOLECTIONS_USERNAME}${SEED}" >> seed.env
-echo "SLSKD_SLSK_USERNAME=Pantagruweb${COOLECTIONS_USERNAME}${SEED}" >> seed.env
+echo "SLSKD_SLSK_PASSWORD=PantagruwebDany${SEED}" >> seed.env
+echo "SLSKD_SLSK_USERNAME=PantagruwebDany${SEED}" >> seed.env
 echo "SUBDOMAIN=${SUBDOMAIN}" >> seed.env
 
 cat seed.env
