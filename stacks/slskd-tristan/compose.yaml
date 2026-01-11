@@ -73,6 +73,10 @@ services:
       traefik.http.routers.pantagruweb-soulsync-tristan.rule: Host(`soulsync-tristan.pantagruweb.club`)
       traefik.http.services.pantagruweb-soulsync-tristan.loadbalancer.server.port: 8008
 
+
+volumes:
+  soulsync_database:
+
 networks:
   saltbox:
     external: true
