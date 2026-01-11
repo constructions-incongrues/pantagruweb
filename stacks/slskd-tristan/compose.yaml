@@ -18,6 +18,61 @@ services:
       - ./slskd.yml:/app/slskd.yml
       - /etc/localtime:/etc/localtime:ro
 
+  soulsync:
+    image: boulderbadgedad/soulsync:latest
+    environment:
+      # User/Group ID configuration
+      - PUID=1000
+      - PGID=1000
+      - UMASK=022
+      # Web server configuration
+      - FLASK_ENV=production
+      - PYTHONPATH=/app
+      # Optional: Configure through environment variables
+      - SOULSYNC_CONFIG_PATH=/app/config/config.json
+      # Set timezone
+      - TZ=Europe/Paris
+    ports:
+      - "8888:8888"      # Spotify OAuth callback
+      - "8889:8889"      # Tidal OAuth callback
+    volumes:
+      # Persistent data volumes
+      - ./config:/app/config
+      - ./logs:/app/logs
+      - ./downloads:/app/downloads
+      # Use named volume for database persistence (separate from host database)
+      # NOTE: Changed from /app/database to /app/data to avoid overwriting Python package
+      - soulsync_database:/app/data
+      # IMPORTANT: Mount the drives containing your download and transfer folders
+      # If your download/transfer paths are on E: drive, mount E: drive:
+      #- /mnt/e:/host/mnt/e:rw
+      # Mount H: drive for transfer folder
+      #- /mnt/h:/host/mnt/h:rw
+      # If your download/transfer paths are on C: drive, uncomment this line:
+      # - /mnt/c:/host/mnt/c:rw
+      # If your download/transfer paths are on D: drive, uncomment this line:
+      # - /mnt/d:/host/mnt/d:rw
+      # Add additional drive mounts as needed for your specific setup
+      # Optional: Mount your music library for Plex/Jellyfin access
+      #- /path/to/your/music:/music:ro
+    extra_hosts:
+      # Allow container to reach host services
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    labels:
+      traefik.enable: true
+      com.github.saltbox.saltbox_managed: true
+      traefik.http.routers.pantagruweb-soulsync-tristan.entrypoints: web,websecure
+      traefik.http.routers.pantagruweb-soulsync-tristan.middlewares: globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker
+      traefik.http.routers.pantagruweb-soulsync-tristan.rule: Host(`soulsync-tristan.pantagruweb.club`)
+      traefik.http.services.pantagruweb-soulsync-tristan.loadbalancer.server.port: 8008
+
 networks:
   saltbox:
     external: true
