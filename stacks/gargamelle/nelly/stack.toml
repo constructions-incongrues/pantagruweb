@@ -6,7 +6,6 @@ server = "gabelle"
 links = [
   "https://slskd-nelly.pantagruweb.club",
   "https://lidarr-nelly.pantagruweb.club",
-  "https://youtubarr-nelly.pantagruweb.club",
 ]
 linked_repo = "pantagruweb-main"
 run_directory = "stacks/gargamelle/nelly"
@@ -23,8 +22,6 @@ echo "SEED=${SEED}" >> seed.env
 echo "SLSKD_SLSK_PASSWORD=Pantagruweb${COOLECTIONS_USERNAME}${SEED}" >> seed.env
 echo "SLSKD_SLSK_USERNAME=Pantagruweb${COOLECTIONS_USERNAME}${SEED}" >> seed.env
 echo "SUBDOMAIN=${SUBDOMAIN}" >> seed.env
-echo "YOUTUBARR_SECRET_KEY=PantagruwebYoutubarr${SEED}" >> seed.env
-echo "LIDARR_TOKEN=NWNjK4CENm66CBQ18sKUNnsMhcq4rb2i" >> seed.env
 
 cat seed.env
 
