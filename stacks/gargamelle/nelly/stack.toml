@@ -12,7 +12,7 @@ run_directory = "stacks/gargamelle/nelly"
 destroy_before_deploy = true
 additional_env_files = ["seed.env"]
 pre_deploy.command = """
-COOLECTIONS_USERNAME=nelly
+COOLECTIONS_USERNAME=Nelly
 SEED=$(date +%s)
 SUBDOMAIN=nelly
 echo > seed.env
