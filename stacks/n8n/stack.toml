@@ -3,14 +3,12 @@ name = "pantagruweb-n8n"
 tags = ["pantagruweb"]
 [stack.config]
 server = "gabelle"
-links = [
-  "https://nhuitn.pantagruweb.club"
-]
+links = ["https://n8n.pantagruweb.club"]
 poll_for_updates = true
 linked_repo = "pantagruweb-main"
 run_directory = "stacks/n8n"
 environment = """
 GENERIC_TIMEZONE=Europe/Paris
 DOMAIN_NAME=pantagruweb.club
-SUBDOMAIN=nhuitn
+SUBDOMAIN=n8n
 """
