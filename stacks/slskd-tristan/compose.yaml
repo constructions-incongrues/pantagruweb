@@ -61,12 +61,6 @@ services:
       # Allow container to reach host services
       - "host.docker.internal:host-gateway"
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8888/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
     labels:
       traefik.enable: true
       com.github.saltbox.saltbox_managed: true
