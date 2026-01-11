@@ -59,7 +59,7 @@ services:
       - CELERY_RESULT_BACKEND=redis://youtubarr-redis:6379/0
       - LIDARR_URL=http://lidarr:8686
       - LIDARR_TOKEN=${LIDARR_TOKEN}
-      - ALLOWED_HOSTS=*
+      - ALLOWED_HOSTS=youtubarr-nelly.pantagruweb.club
       - YOUTUBE_API_KEY=AIzaSyCA0dEpsqw4CcEsMhXMdN27-StntKZQ2D4
       - DEBUG=true
     volumes:
