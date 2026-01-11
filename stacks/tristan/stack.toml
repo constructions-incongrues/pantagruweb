@@ -3,9 +3,7 @@ name = "pantagruweb-slskd-tristan"
 tags = ["pantagruweb", "slskd"]
 [stack.config]
 server = "gabelle"
-links = [
-  "https://tristan-gargamelle.pantagruweb.club"
-]
+links = ["https://tristan.pantagruweb.club"]
 linked_repo = "pantagruweb-main"
 run_directory = "stacks/slskd-tristan"
 destroy_before_deploy = true
@@ -13,11 +11,11 @@ additional_env_files = ["seed.env"]
 pre_deploy.command = """
 COOLECTIONS_USERNAME=Tristan
 SEED=$(date +%s)
-SUBDOMAIN=tristan-gargamelle
+SUBDOMAIN=tristan
 COOLECTIONS_PATH=/mnt/remote/vip-audio/Audiothèque
 echo > seed.env
 echo "COOLECTIONS_PATH=${COOLECTIONS_PATH}" >> seed.env
-echo "COOLECTIONS_USERNAME=${COOLECTIONS_USERNAME}" > seed.env
+echo "COOLECTIONS_USERNAME=${COOLECTIONS_USERNAME}" >> seed.env
 echo "SEED=${SEED}" >> seed.env
 echo "SLSKD_SLSK_PASSWORD=Pantagruweb${COOLECTIONS_USERNAME}${SEED}" >> seed.env
 echo "SLSKD_SLSK_USERNAME=Pantagruweb${COOLECTIONS_USERNAME}${SEED}" >> seed.env
