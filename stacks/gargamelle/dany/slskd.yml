@@ -1,3 +1,4 @@
+instance_name: tristan
 feature:
   swagger: true
 web:
@@ -16,7 +17,7 @@ integration:
       on:
         - DownloadDirectoryComplete
       call:
-        url: https://nhuitn.pantagruweb.club/webhook/gargamelle/slskd?destinations=@rottweiler.slip&library=3&types=DownloadDirectoryComplete&downloadDir=/Coolections-Audio/Audiothèque/Dany%20mp3-flac/downloads/slskd
+        url: https://nhuitn.pantagruweb.club/webhook/gargamelle/slskd?destinations=@tristan&library=1&types=DownloadDirectoryComplete&downloadDir=/Coolections-Audio/Audiothèque/Tristan/downloads/slskd
         ignoreCertificateErrors: false
         headers: []
       timeout: 5000

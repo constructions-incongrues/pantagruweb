@@ -1,0 +1,28 @@
+instance_name: tristan
+feature:
+  swagger: true
+web:
+  authentication:
+    disabled: true
+    jwt:
+      key: ~
+      ttl: 604800000
+    api_keys:
+      soulsync:
+        key: "^rM~Z30L@-ii99#,h?impk%}:^Uo7i+~}p^^z@4K=D!_#TYg]_K~54q4^fxF:nHL"
+        cidr: 0.0.0.0/0,::/0
+integration:
+  webhooks:
+    gargamelle:
+      on:
+        - DownloadDirectoryComplete
+      call:
+        url: https://nhuitn.pantagruweb.club/webhook/gargamelle/slskd?destinations=@tristan&library=1&types=DownloadDirectoryComplete&downloadDir=/Coolections-Audio/Audiothèque/Tristan/downloads/slskd
+        ignoreCertificateErrors: false
+        headers: []
+      timeout: 5000
+      retry:
+        attempts: 1
+shares:
+  directories:
+    - /app/downloads

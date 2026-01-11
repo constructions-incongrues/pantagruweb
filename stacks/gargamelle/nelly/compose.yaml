@@ -1,0 +1,45 @@
+services:
+  slskd:
+    restart: unless-stopped
+    image: slskd/slskd:0.23.2
+    user: "${UID-1000}:${GID-1000}"
+    networks:
+      - saltbox
+    env_file: seed.env
+    labels:
+      traefik.enable: true
+      com.github.saltbox.saltbox_managed: true
+      traefik.http.routers.pantagruweb-gargamelle-slskd-tristan.entrypoints: web,websecure
+      traefik.http.routers.pantagruweb-gargamelle-slskd-tristan.middlewares: globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker
+      traefik.http.routers.pantagruweb-gargamelle-slskd-tristan.rule: Host(`slskd-${SUBDOMAIN}.pantagruweb.club`)
+      traefik.http.services.pantagruweb-gargamelle-slskd-tristan.loadbalancer.server.port: 5030
+    volumes:
+      - /mnt/remote/vip-audio/Audiothèque/${COOLECTIONS_USERNAME}/downloads/slskd:/app/downloads
+      - ./slskd.yml:/app/slskd.yml
+      - /etc/localtime:/etc/localtime:ro
+
+  lidarr:
+    image: ghcr.io/hotio/lidarr:pr-plugins
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ./lidarr:/config
+      - /mnt/remote/vip-audio/Audiothèque/${COOLECTIONS_USERNAME}:/music
+      - /mnt/remote/vip-audio/Audiothèque/${COOLECTIONS_USERNAME}/downloads/slskd:/app/downloads
+    restart: unless-stopped
+    labels:
+      traefik.enable: true
+      com.github.saltbox.saltbox_managed: true
+      traefik.http.routers.pantagruweb-gargamelle-lidarr-tristan.entrypoints: web,websecure
+      traefik.http.routers.pantagruweb-gargamelle-lidarr-tristan.middlewares: globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker
+      traefik.http.routers.pantagruweb-gargamelle-lidarr-tristan.rule: Host(`lidarr-${SUBDOMAIN}.pantagruweb.club`)
+      traefik.http.services.pantagruweb-gargamelle-lidarr-tristan.loadbalancer.server.port: 8686
+    networks:
+      - saltbox
+    env_file: seed.env
+
+networks:
+  saltbox:
+    external: true

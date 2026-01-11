@@ -26,9 +26,9 @@ linked_repo = "pantagruweb-main"
 resource_path = [
   "komodo.toml",
   "stacks/n8n/stack.toml",
-  "stacks/slskd-nelly/stack.toml",
-  "stacks/slskd-dany/stack.toml",
+  "stacks/gargamelle/dany/stack.toml",
   "stacks/gargamelle/tristan/stack.toml",
+  "stacks/gargamelle/nelly/stack.toml",
   "stacks/slskd-lapin/stack.toml",
 ]
 managed = false

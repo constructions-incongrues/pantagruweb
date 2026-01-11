@@ -1,23 +1,23 @@
 [[stack]]
-name = "pantagruweb-slskd-dany"
-tags = ["pantagruweb", "slskd"]
+name = "pantagruweb-gargamelle-nelly"
+tags = ["pantagruweb", "gargamelle"]
 [stack.config]
 server = "gabelle"
 links = [
-  "https://dany-gargamelle.pantagruweb.club"
+  "https://slskd-nelly.pantagruweb.club",
+  "https://lidarr-nelly.pantagruweb.club",
 ]
 linked_repo = "pantagruweb-main"
-run_directory = "stacks/slskd-dany"
+run_directory = "stacks/gargamelle/nelly"
 destroy_before_deploy = true
 additional_env_files = ["seed.env"]
 pre_deploy.command = """
-COOLECTIONS_USERNAME=dany
+COOLECTIONS_USERNAME=nelly
 SEED=$(date +%s)
-SUBDOMAIN=dany-gargamelle
-COOLECTIONS_PATH=/mnt/remote/vip-audio/Audiothèque
+SUBDOMAIN=nelly
 echo > seed.env
 echo "COOLECTIONS_PATH=${COOLECTIONS_PATH}" >> seed.env
-echo "COOLECTIONS_USERNAME=${COOLECTIONS_USERNAME}" > seed.env
+echo "COOLECTIONS_USERNAME=${COOLECTIONS_USERNAME}" >> seed.env
 echo "SEED=${SEED}" >> seed.env
 echo "SLSKD_SLSK_PASSWORD=Pantagruweb${COOLECTIONS_USERNAME}${SEED}" >> seed.env
 echo "SLSKD_SLSK_USERNAME=Pantagruweb${COOLECTIONS_USERNAME}${SEED}" >> seed.env
