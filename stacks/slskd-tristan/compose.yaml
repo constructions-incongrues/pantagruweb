@@ -32,6 +32,8 @@ services:
       - SOULSYNC_CONFIG_PATH=/app/config/config.json
       # Set timezone
       - TZ=Europe/Paris
+    networks:
+      - saltbox
     ports:
       - "8888:8888"      # Spotify OAuth callback
       - "8889:8889"      # Tidal OAuth callback
