@@ -12,7 +12,7 @@ run_directory = "stacks/gargamelle/dany"
 destroy_before_deploy = true
 additional_env_files = ["seed.env"]
 pre_deploy.command = """
-COOLECTIONS_USERNAME=Dany mp3-flac
+COOLECTIONS_USERNAME="Dany mp3-flac"
 SEED=$(date +%s)
 SUBDOMAIN=dany
 echo > seed.env
