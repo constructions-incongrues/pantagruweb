@@ -70,7 +70,7 @@ services:
       traefik.http.routers.pantagruweb-gargamelle-youtubarr-nelly.entrypoints: web,websecure
       traefik.http.routers.pantagruweb-gargamelle-youtubarr-nelly.middlewares: globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker
       traefik.http.routers.pantagruweb-gargamelle-youtubarr-nelly.rule: Host(`youtubarr-${SUBDOMAIN}.pantagruweb.club`)
-      traefik.http.services.pantagruweb-gargamelle-youtubarr-nelly.loadbalancer.server.port: 8000
+      traefik.http.services.pantagruweb-gargamelle-youtubarr-nelly.loadbalancer.server.port: 80
     env_file: seed.env
 
 networks:
