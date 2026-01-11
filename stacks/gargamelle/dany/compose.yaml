@@ -26,7 +26,7 @@ services:
       - TZ=${TZ}
     volumes:
       - ./lidarr:/config
-      - /mnt/remote/vip-audio/Audiothèque/${COOLECTIONS_USERNAME}:/music
+      - /mnt/remote/vip-audio/Audiothèque:/music
       - /mnt/remote/vip-audio/Audiothèque/${COOLECTIONS_USERNAME}/downloads/slskd:/app/downloads
     restart: unless-stopped
     labels:
