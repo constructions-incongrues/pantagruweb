@@ -9,10 +9,10 @@ services:
     labels:
       traefik.enable: true
       com.github.saltbox.saltbox_managed: true
-      traefik.http.routers.pantagruweb-gargamelle-slskd-tristan.entrypoints: web,websecure
-      traefik.http.routers.pantagruweb-gargamelle-slskd-tristan.middlewares: globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker
-      traefik.http.routers.pantagruweb-gargamelle-slskd-tristan.rule: Host(`slskd-${SUBDOMAIN}.pantagruweb.club`)
-      traefik.http.services.pantagruweb-gargamelle-slskd-tristan.loadbalancer.server.port: 5030
+      traefik.http.routers.pantagruweb-gargamelle-slskd-nelly.entrypoints: web,websecure
+      traefik.http.routers.pantagruweb-gargamelle-slskd-nelly.middlewares: globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker
+      traefik.http.routers.pantagruweb-gargamelle-slskd-nelly.rule: Host(`slskd-${SUBDOMAIN}.pantagruweb.club`)
+      traefik.http.services.pantagruweb-gargamelle-slskd-nelly.loadbalancer.server.port: 5030
     volumes:
       - /mnt/remote/vip-audio/Audiothèque/${COOLECTIONS_USERNAME}/downloads/slskd:/app/downloads
       - ./slskd.yml:/app/slskd.yml
@@ -32,10 +32,10 @@ services:
     labels:
       traefik.enable: true
       com.github.saltbox.saltbox_managed: true
-      traefik.http.routers.pantagruweb-gargamelle-lidarr-tristan.entrypoints: web,websecure
-      traefik.http.routers.pantagruweb-gargamelle-lidarr-tristan.middlewares: globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker
-      traefik.http.routers.pantagruweb-gargamelle-lidarr-tristan.rule: Host(`lidarr-${SUBDOMAIN}.pantagruweb.club`)
-      traefik.http.services.pantagruweb-gargamelle-lidarr-tristan.loadbalancer.server.port: 8686
+      traefik.http.routers.pantagruweb-gargamelle-lidarr-nelly.entrypoints: web,websecure
+      traefik.http.routers.pantagruweb-gargamelle-lidarr-nelly.middlewares: globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker
+      traefik.http.routers.pantagruweb-gargamelle-lidarr-nelly.rule: Host(`lidarr-${SUBDOMAIN}.pantagruweb.club`)
+      traefik.http.services.pantagruweb-gargamelle-lidarr-nelly.loadbalancer.server.port: 8686
     networks:
       - saltbox
     env_file: seed.env
