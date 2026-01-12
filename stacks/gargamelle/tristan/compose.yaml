@@ -25,6 +25,7 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     volumes:
+      - lidarr_config:/config:rw
       - /mnt/remote/vip-audio/Audiothèque:/music
       - /mnt/remote/vip-audio/Audiothèque/${COOLECTIONS_USERNAME}/downloads/slskd:/app/downloads
     restart: unless-stopped
@@ -44,4 +45,4 @@ networks:
     external: true
 
 volumes:
-  postgres-data:
+  lidarr_config:
