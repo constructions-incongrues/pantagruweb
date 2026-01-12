@@ -14,7 +14,7 @@ services:
       traefik.http.routers.pantagruweb-gargamelle-slskd-tristan.rule: Host(`slskd-${SUBDOMAIN}.pantagruweb.club`)
       traefik.http.services.pantagruweb-gargamelle-slskd-tristan.loadbalancer.server.port: 5030
     volumes:
-      - /mnt/remote/vip-audio/Audiothèque/${COOLECTIONS_USERNAME}/downloads/slskd:/app/downloads
+      - /mnt/remote/vip_audio/Audiothèque/${COOLECTIONS_USERNAME}/downloads/slskd:/app/downloads
       - ./slskd.yml:/app/slskd.yml
       - /etc/localtime:/etc/localtime:ro
 
@@ -27,8 +27,8 @@ services:
     volumes:
       - lidarr_config:/config:rw
       - ./lidarr/config.xml:/config/config.xml:rw
-      - /mnt/remote/vip-audio:/mnt/remote/vip-audio:rw
-      - /mnt/remote/vip-audio/Audiothèque/${COOLECTIONS_USERNAME}/downloads/slskd:/app/downloads:rw
+      - /mnt/remote/vip_audio:/mnt/remote/vip_audio:rw
+      - /mnt/remote/vip_audio/Audiothèque/${COOLECTIONS_USERNAME}/downloads/slskd:/app/downloads:rw
     restart: unless-stopped
     labels:
       traefik.enable: true

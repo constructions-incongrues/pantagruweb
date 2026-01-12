@@ -14,7 +14,7 @@ services:
       traefik.http.routers.pantagruweb-gargamelle-slskd-dany.rule: Host(`slskd-${SUBDOMAIN}.pantagruweb.club`)
       traefik.http.services.pantagruweb-gargamelle-slskd-dany.loadbalancer.server.port: 5030
     volumes:
-      - /mnt/remote/vip-audio/Audiothèque/${COOLECTIONS_USERNAME}/downloads/slskd:/app/downloads
+      - /mnt/remote/vip_audio/Audiothèque/${COOLECTIONS_USERNAME}/downloads/slskd:/app/downloads
       - ./slskd.yml:/app/slskd.yml
       - /etc/localtime:/etc/localtime:ro
 
@@ -26,8 +26,8 @@ services:
       - TZ=${TZ}
     volumes:
       - ./lidarr:/config
-      - /mnt/remote/vip-audio/Audiothèque:/music
-      - /mnt/remote/vip-audio/Audiothèque/${COOLECTIONS_USERNAME}/downloads/slskd:/app/downloads
+      - /mnt/remote/vip_audio/Audiothèque:/music
+      - /mnt/remote/vip_audio/Audiothèque/${COOLECTIONS_USERNAME}/downloads/slskd:/app/downloads
     restart: unless-stopped
     labels:
       traefik.enable: true
@@ -46,7 +46,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./config:/config:rw
-      - /mnt/remote/vip-audio/Audiothèque/${COOLECTIONS_USERNAME}/downloads/bandcamp:/downloads:z
+      - /mnt/remote/vip_audio/Audiothèque/${COOLECTIONS_USERNAME}/downloads/bandcamp:/downloads:z
     environment:
       - TZ=Europe/Paris
       - PUID=1000

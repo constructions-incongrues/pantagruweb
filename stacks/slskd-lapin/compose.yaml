@@ -14,7 +14,7 @@ services:
       traefik.http.routers.pantagruweb-slskd-lapin.rule: Host(`lapin-gargamelle.pantagruweb.club`)
       traefik.http.services.pantagruweb-slskd-lapin.loadbalancer.server.port: 5030
     volumes:
-      - /mnt/remote/vip-audio/Audiothèque/Mange Lapin/__Gargamelle:/app/downloads
+      - /mnt/remote/vip_audio/Audiothèque/Mange Lapin/__Gargamelle:/app/downloads
       - ./slskd.yml:/app/slskd.yml
       - /etc/localtime:/etc/localtime:ro
 
