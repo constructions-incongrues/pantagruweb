@@ -1,9 +1,0 @@
-{
-  "directory": "/downloads",
-  "cookies": "/app/cookies.txt",
-  "format": "flac",
-  "ignore_file": "/app/ignores.txt",
-  "ignore_patterns": "",
-  "temp_dir": "/tmp/bandcampsync",
-  "notify_url": "http://example.com/webhook"
-}

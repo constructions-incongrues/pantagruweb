@@ -40,27 +40,23 @@ services:
       - saltbox
     env_file: seed.env
 
-  bandcampsync-web:
-    image: ghcr.io/constructions-incongrues/bandcampsync-flask:latest
-    container_name: bandcampsync-web
-    init: true
+  bandcampsync:
+    image: ghcr.io/meeb/bandcampsync:latest
+    container_name: bandcampsync
+    restart: unless-stopped
     volumes:
-      - ./config.json:/app/config.json:ro,z
+      - ./config:/config
       - /mnt/remote/vip-audio/Audiothèque/${COOLECTIONS_USERNAME}/downloads/bandcamp:/downloads:z
       - ./cookies.txt:/app/cookies.txt:ro,z
       - ./ignores.txt:/app/ignores.txt:ro,z
     environment:
-      - CONFIG_PATH=/app/config.json
-    restart: unless-stopped
+      - TZ=Europe/Paris
+      - PUID=1000
+      - PGID=1000
+      - RUN_DAILY_AT=3
     networks:
       - saltbox
-    labels:
-      traefik.enable: true
-      com.github.saltbox.saltbox_managed: true
-      traefik.http.routers.pantagruweb-gargamelle-bandcampsync-dany.entrypoints: web,websecure
-      traefik.http.routers.pantagruweb-gargamelle-bandcampsync-dany.middlewares: globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker
-      traefik.http.routers.pantagruweb-gargamelle-bandcampsync-dany.rule: Host(`bandcampsync-${SUBDOMAIN}.pantagruweb.club`)
-      traefik.http.services.pantagruweb-gargamelle-bandcampsync-dany.loadbalancer.server.port: 5000
+    env_file: seed.env
 
 networks:
   saltbox:
