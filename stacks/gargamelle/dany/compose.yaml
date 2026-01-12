@@ -50,6 +50,8 @@ services:
     environment:
       - CONFIG_PATH=/app/config.json
     restart: unless-stopped
+    networks:
+      - saltbox
     labels:
       traefik.enable: true
       com.github.saltbox.saltbox_managed: true
