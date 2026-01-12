@@ -1,7 +1,7 @@
 services:
   slskd:
     restart: unless-stopped
-    image: slskd/slskd:0.23.2
+    image: slskd/slskd:0.24.1
     user: "${UID-1000}:${GID-1000}"
     container_name: slskd-tristan
     networks:
