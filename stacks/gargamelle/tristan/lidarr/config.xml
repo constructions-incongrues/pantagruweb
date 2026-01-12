@@ -6,7 +6,7 @@
   <LaunchBrowser>True</LaunchBrowser>
   <ApiKey>e698a714b9914f4a8e2d22be7d602b03</ApiKey>
   <AuthenticationMethod>Forms</AuthenticationMethod>
-  <AuthenticationRequired>Enabled</AuthenticationRequired>
+  <AuthenticationRequired>Disabled</AuthenticationRequired>
   <Branch>plugins</Branch>
   <LogLevel>debug</LogLevel>
   <SslCertPath></SslCertPath>
