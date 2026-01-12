@@ -20,7 +20,6 @@ services:
 
   lidarr:
     image: ghcr.io/hotio/lidarr:pr-plugins
-    scale: 2
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
