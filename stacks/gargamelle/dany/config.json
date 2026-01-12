@@ -1,0 +1,9 @@
+{
+  "cookies": "your_bandcamp_session_cookies_string_here",
+  "directory": "~/Music/Bandcamp",
+  "format": "flac",
+  "ignore_file": "~/ignores.txt",
+  "ignore_patterns": "",
+  "temp_dir": "/tmp/bandcampsync",
+  "notify_url": "http://example.com/webhook"
+}

@@ -40,6 +40,24 @@ services:
       - saltbox
     env_file: seed.env
 
+  bandcampsync-web:
+    image: ghcr.io/constructions-incongrues/bandcampsync-flask:latest
+    container_name: bandcampsync-web
+    init: true
+    volumes:
+      - ./config.json:/app/config.json:ro,z
+      - /mnt/remote/vip-audio/Audiothèque/${COOLECTIONS_USERNAME}/downloads/bandcamp:/downloads:z
+    environment:
+      - CONFIG_PATH=/app/config.json
+    restart: unless-stopped
+    labels:
+      traefik.enable: true
+      com.github.saltbox.saltbox_managed: true
+      traefik.http.routers.pantagruweb-gargamelle-bandcampsync-dany.entrypoints: web,websecure
+      traefik.http.routers.pantagruweb-gargamelle-bandcampsync-dany.middlewares: globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker
+      traefik.http.routers.pantagruweb-gargamelle-bandcampsync-dany.rule: Host(`bandcampsync-${SUBDOMAIN}.pantagruweb.club`)
+      traefik.http.services.pantagruweb-gargamelle-bandcampsync-dany.loadbalancer.server.port: 5000
+
 networks:
   saltbox:
     external: true
