@@ -1,7 +1,7 @@
 services:
   slskd-tristan:
     restart: unless-stopped
-    image: slskd/slskd:0.24.1
+    image: slskd/slskd:0.24.2
     user: "${UID-1000}:${GID-1000}"
     networks:
       - saltbox
