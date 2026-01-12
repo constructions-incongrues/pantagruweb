@@ -1,9 +1,9 @@
 services:
-  slskd:
+  slskd-tristan:
+    container_name: slskd
     restart: unless-stopped
     image: slskd/slskd:0.24.1
     user: "${UID-1000}:${GID-1000}"
-    container_name: slskd-tristan
     networks:
       - saltbox
     env_file: seed.env
