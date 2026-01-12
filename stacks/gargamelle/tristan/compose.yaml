@@ -3,6 +3,7 @@ services:
     restart: unless-stopped
     image: slskd/slskd:0.23.2
     user: "${UID-1000}:${GID-1000}"
+    container_name: slskd-tristan
     networks:
       - saltbox
     env_file: seed.env
@@ -25,6 +26,7 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     volumes:
+      - lidarr_config:/config:rw
       - ./lidarr/config.xml:/config/config.xml:z
       - /mnt/remote/vip-audio/Audiothèque:/music:z
       - /mnt/remote/vip-audio/Audiothèque/${COOLECTIONS_USERNAME}/downloads/slskd:/app/downloads:z
