@@ -55,17 +55,6 @@ services:
     networks:
       - saltbox
     env_file: seed.env
-    command:
-      [
-        --format,
-        flac,
-        --directory,
-        /downloads,
-        --ignore-file,
-        /config/ignores.txt,
-        --cookies,
-        /config/cookies.txt,
-      ]
 networks:
   saltbox:
     external: true
