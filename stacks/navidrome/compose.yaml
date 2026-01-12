@@ -7,7 +7,9 @@ services:
       ND_LOGLEVEL: info
       ND_MUSICFOLDER: /music
       ND_DATAFOLDER: /data
-      ND_BASEURL: ""
+      ND_BASEURL: "https://navidrome.pantagruweb.club"
+      ND_ENABLESHARING: true
+      ND_ENABLESTARRATING: false
     volumes:
       - /mnt/remote/vip_audio/Audiothèque:/vip_audio:ro
       - ./music:/music:ro
