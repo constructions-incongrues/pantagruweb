@@ -1,6 +1,6 @@
 {
   "directory": "/downloads",
-  "cookies": "/app/cookies.txt",
+  "cookies": "client_id=A6183E8AEFE32DC4AA328E04A37CB9FFA75880D230CA51AABCE42CAF64A7039A; playlimit_client_id=A6183E8AEFE32DC4AA328E04A37CB9FFA75880D230CA51AABCE42CAF64A7039A; privatestream_client_id=A6183E8AEFE32DC4AA328E04A37CB9FFA758",
   "format": "flac",
   "ignore_file": "/app/ignores.txt",
   "ignore_patterns": "",

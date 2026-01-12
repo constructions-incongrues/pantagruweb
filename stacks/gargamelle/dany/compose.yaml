@@ -47,7 +47,6 @@ services:
     volumes:
       - ./config.json:/app/config.json:ro,z
       - /mnt/remote/vip-audio/Audiothèque/${COOLECTIONS_USERNAME}/downloads/bandcamp:/downloads:z
-      - ./cookies.txt:/app/cookies.txt:ro,z
       - ./ignores.txt:/app/ignores.txt:ro,z
     environment:
       - CONFIG_PATH=/app/config.json
