@@ -9,7 +9,8 @@ services:
       ND_DATAFOLDER: /data
       ND_BASEURL: ""
     volumes:
-      - /mnt/remote/vip_audio/Audiothèque:/music:ro
+      - /mnt/remote/vip_audio/Audiothèque:/vip_audio:ro
+      - ./music:/music:ro
       - navidrome_data:/data
     labels:
       traefik.enable: true
