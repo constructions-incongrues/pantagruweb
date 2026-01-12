@@ -24,19 +24,10 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
-      - LIDARR__POSTGRES__HOST=postgres
-      - LIDARR__POSTGRES__PORT=5432
-      - LIDARR__POSTGRES__USER=postgres
-      - LIDARR__POSTGRES__PASSWORD=password
-      - LIDARR__POSTGRES__MAINDB=lidarr-main
-      - LIDARR__POSTGRES__LOGDB=lidarr-log
     volumes:
-      - ./lidarr/config.xml:/config/config.xml:z
       - /mnt/remote/vip-audio/Audiothèque:/music
       - /mnt/remote/vip-audio/Audiothèque/${COOLECTIONS_USERNAME}/downloads/slskd:/app/downloads
     restart: unless-stopped
-    depends_on:
-      - postgres
     labels:
       traefik.enable: true
       com.github.saltbox.saltbox_managed: true
@@ -47,18 +38,6 @@ services:
     networks:
       - saltbox
     env_file: seed.env
-
-  postgres:
-    image: postgres:14-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: lidarr-main
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-    networks:
-      - saltbox
 
 networks:
   saltbox:
