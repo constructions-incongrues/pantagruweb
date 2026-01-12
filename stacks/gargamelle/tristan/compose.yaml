@@ -19,7 +19,6 @@ services:
       - /etc/localtime:/etc/localtime:ro
 
   lidarr-tristan:
-    container_name: lidarr
     image: ghcr.io/hotio/lidarr:pr-plugins
     environment:
       - PUID=${PUID}
