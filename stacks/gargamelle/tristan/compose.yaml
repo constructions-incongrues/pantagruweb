@@ -31,7 +31,7 @@ services:
       - LIDARR__POSTGRES__MAINDB=lidarr-main
       - LIDARR__POSTGRES__LOGDB=lidarr-log
     volumes:
-      - ./lidarr/config.xml:/config/config.xml
+      - ./lidarr/config.xml:/config/config.xml:z
       - /mnt/remote/vip-audio/Audiothèque:/music
       - /mnt/remote/vip-audio/Audiothèque/${COOLECTIONS_USERNAME}/downloads/slskd:/app/downloads
     restart: unless-stopped
