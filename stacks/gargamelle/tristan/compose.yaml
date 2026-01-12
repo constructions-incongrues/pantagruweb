@@ -28,8 +28,8 @@ services:
     volumes:
       - lidarr_config:/config:rw
       - ./lidarr/config.xml:/config/config.xml:rw
-      - /mnt/remote/vip-audio/Audiothèque:/music:z
-      - /mnt/remote/vip-audio/Audiothèque/${COOLECTIONS_USERNAME}/downloads/slskd:/app/downloads:z
+      - /mnt/remote/vip-audio/Audiothèque:/music:rw
+      - /mnt/remote/vip-audio/Audiothèque/${COOLECTIONS_USERNAME}/downloads/slskd:/app/downloads:rw
     restart: unless-stopped
     labels:
       traefik.enable: true
