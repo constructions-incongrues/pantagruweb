@@ -12,7 +12,7 @@ name = "pantagruweb-main"
 tags = ["pantagruweb"]
 [repo.config]
 server = "gabelle"
-builder = "local"
+builder = "gabelle"
 git_account = "trivoallan"
 repo = "constructions-incongrues/pantagruweb"
 
