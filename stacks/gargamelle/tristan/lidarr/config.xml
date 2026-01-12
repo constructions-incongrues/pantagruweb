@@ -1,5 +1,6 @@
 <Config>
-  <AuthenticationMethod>None</AuthenticationMethod>
+  <AuthenticationMethod>Forms</AuthenticationMethod>
+  <AuthenticationRequired>Enabled</AuthenticationRequired>
   <BindAddress>*</BindAddress>
   <Port>8686</Port>
   <SslPort>6868</SslPort>
