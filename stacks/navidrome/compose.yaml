@@ -1,0 +1,30 @@
+services:
+  navidrome:
+    image: deluan/navidrome:latest
+    user: "${UID-1000}:${GID-1000}"
+    restart: unless-stopped
+    environment:
+      ND_SCANSCHEDULE: 1h
+      ND_LOGLEVEL: info
+      ND_MUSICFOLDER: /music
+      ND_DATAFOLDER: /data
+      ND_BASEURL: ""
+    volumes:
+      - /mnt/remote/vip_audio/Audiothèque:/music:ro
+      - navidrome_data:/data
+    labels:
+      traefik.enable: true
+      com.github.saltbox.saltbox_managed: true
+      traefik.http.routers.pantagruweb-navidrome.entrypoints: web,websecure
+      traefik.http.routers.pantagruweb-navidrome.middlewares: globalHeaders@file,redirect-to-https@docker,robotHeaders@file,cloudflarewarp@docker
+      traefik.http.routers.pantagruweb-navidrome.rule: Host(`${SUBDOMAIN}.${DOMAIN_NAME}`)
+      traefik.http.services.pantagruweb-navidrome.loadbalancer.server.port: 4533
+    networks:
+      - saltbox
+
+volumes:
+  navidrome_data:
+
+networks:
+  saltbox:
+    external: true

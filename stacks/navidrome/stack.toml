@@ -1,0 +1,13 @@
+[[stack]]
+name = "pantagruweb-navidrome"
+tags = ["pantagruweb"]
+[stack.config]
+server = "gabelle"
+links = ["https://navidrome.pantagruweb.club"]
+poll_for_updates = true
+linked_repo = "pantagruweb-main"
+run_directory = "stacks/navidrome"
+environment = """
+DOMAIN_NAME=pantagruweb.club
+SUBDOMAIN=navidrome
+"""
