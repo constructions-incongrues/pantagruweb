@@ -1,4 +1,5 @@
 <Config>
+  <AuthenticationMethod>None</AuthenticationMethod>
   <BindAddress>*</BindAddress>
   <Port>8686</Port>
   <SslPort>6868</SslPort>
