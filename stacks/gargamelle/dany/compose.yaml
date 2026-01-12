@@ -45,7 +45,7 @@ services:
     container_name: bandcampsync
     restart: unless-stopped
     volumes:
-      - ./config:/config:z
+      - ./config:/config:rw
       - /mnt/remote/vip-audio/Audiothèque/${COOLECTIONS_USERNAME}/downloads/bandcamp:/downloads:z
     environment:
       - TZ=Europe/Paris
