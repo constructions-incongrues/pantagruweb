@@ -1,6 +1,5 @@
 services:
   slskd-tristan:
-    container_name: slskd
     restart: unless-stopped
     image: slskd/slskd:0.24.1
     user: "${UID-1000}:${GID-1000}"
@@ -21,6 +20,7 @@ services:
 
   lidarr:
     image: ghcr.io/hotio/lidarr:pr-plugins
+    scale: 2
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
