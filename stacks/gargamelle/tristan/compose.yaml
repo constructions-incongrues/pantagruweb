@@ -18,7 +18,8 @@ services:
       - ./slskd.yml:/app/slskd.yml
       - /etc/localtime:/etc/localtime:ro
 
-  lidarr:
+  lidarr-tristan:
+    container_name: lidarr
     image: ghcr.io/hotio/lidarr:pr-plugins
     environment:
       - PUID=${PUID}
@@ -27,7 +28,7 @@ services:
     volumes:
       - lidarr_config:/config:rw
       - ./lidarr/config.xml:/config/config.xml:rw
-      - /mnt/remote/vip-audio/Audiothèque:/music:rw
+      - /mnt/remote/vip-audio:/mnt/remote/vip-audio:rw
       - /mnt/remote/vip-audio/Audiothèque/${COOLECTIONS_USERNAME}/downloads/slskd:/app/downloads:rw
     restart: unless-stopped
     labels:
