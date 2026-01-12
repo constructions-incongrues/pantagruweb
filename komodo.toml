@@ -25,11 +25,11 @@ tags = ["pantagruweb"]
 linked_repo = "pantagruweb-main"
 resource_path = [
   "komodo.toml",
-  "stacks/n8n/stack.toml",
   "stacks/gargamelle/dany/stack.toml",
-  "stacks/gargamelle/tristan/stack.toml",
   "stacks/gargamelle/nelly/stack.toml",
-  "stacks/slskd-lapin/stack.toml",
+  "stacks/gargamelle/tristan/stack.toml",
+  "stacks/n8n/stack.toml",
+  "stacks/navidrome/stack.toml"
 ]
 managed = false
 match_tags = ["pantagruweb"]
