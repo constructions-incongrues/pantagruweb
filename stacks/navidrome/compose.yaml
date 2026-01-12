@@ -1,7 +1,6 @@
 services:
   navidrome:
     image: deluan/navidrome:latest
-    user: "${UID-1000}:${GID-1000}"
     restart: unless-stopped
     environment:
       ND_SCANSCHEDULE: 1h
