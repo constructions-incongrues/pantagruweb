@@ -25,7 +25,7 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     volumes:
-      - lidarr_config:/config:rw
+      - ./lidarr/config.xml:/config/config.xml:rw
       - /mnt/remote/vip-audio/Audiothèque:/music
       - /mnt/remote/vip-audio/Audiothèque/${COOLECTIONS_USERNAME}/downloads/slskd:/app/downloads
     restart: unless-stopped
