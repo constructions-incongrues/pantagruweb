@@ -25,9 +25,9 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     volumes:
-      - ./lidarr/config.xml:/config/config.xml:rw
-      - /mnt/remote/vip-audio/Audiothèque:/music
-      - /mnt/remote/vip-audio/Audiothèque/${COOLECTIONS_USERNAME}/downloads/slskd:/app/downloads
+      - ./lidarr/config.xml:/config/config.xml:z
+      - /mnt/remote/vip-audio/Audiothèque:/music:z
+      - /mnt/remote/vip-audio/Audiothèque/${COOLECTIONS_USERNAME}/downloads/slskd:/app/downloads:z
     restart: unless-stopped
     labels:
       traefik.enable: true
