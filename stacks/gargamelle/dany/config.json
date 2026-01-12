@@ -1,6 +1,6 @@
 {
-  "directory": "/app/downloads",
-  "cookies": "# Netscape HTTP Cookie File\n# https://curl.haxx.se/rfc/cookie_spec.html\n# This is a generated file! Do not edit.\n\n.bandcamp.com\tTRUE\t/\tTRUE\t1771183955\tclient_id\tA6183E8AEFE32DC4AA328E04A37CB9FFA75880D230CA51AABCE42CAF64A7039A\n.bandcamp.com\tTRUE\t/\tTRUE\t1771183955\t",
+  "directory": "/downloads",
+  "cookies": "/app/cookies.txt",
   "format": "flac",
   "ignore_file": "/app/ignores.txt",
   "ignore_patterns": "",
