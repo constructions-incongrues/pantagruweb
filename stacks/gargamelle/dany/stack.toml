@@ -4,8 +4,9 @@ tags = ["pantagruweb", "gargamelle"]
 [stack.config]
 server = "gabelle"
 links = [
-  "https://slskd-dany.pantagruweb.club",
+  "https://bandcampsync-dany.pantagruweb.club",
   "https://lidarr-dany.pantagruweb.club",
+  "https://slskd-dany.pantagruweb.club",
 ]
 linked_repo = "pantagruweb-main"
 run_directory = "stacks/gargamelle/dany"
