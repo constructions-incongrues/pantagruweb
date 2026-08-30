@@ -1,1 +1,3 @@
-.terraformstacks/ytdl-server/cookies.txt
+.terraform
+.terraform/
+stacks/ytdl-server/cookies.txt
