@@ -1,2 +1,18 @@
 ---
 download_dir: /videos
+
+# Options yt-dlp posees par le SERVEUR, non par l'appelant.
+#
+# Pourquoi ici et pas dans la requete n8n : l'API applique une liste blanche
+# aux `ytdl_opts` recus (`ytdl_enable_whitelist: true`), et `cookiefile` n'en
+# fait pas partie — un job qui la porte prend un
+# `403 ForbiddenYTDLOption`. C'est delibere cote ytdl-server : laisser un
+# appelant designer un fichier a lire ouvrirait une lecture arbitraire.
+#
+# `ytdl_default_opts` echappe a cette liste parce qu'elle vient de
+# l'exploitant, pas du reseau. C'est le mecanisme prevu pour ce cas.
+#
+# Le fichier designe n'est pas dans ce depot : voir le commentaire du bind
+# `cookies` dans compose.yaml.
+ytdl_default_opts:
+  cookiefile: /cookies.txt
