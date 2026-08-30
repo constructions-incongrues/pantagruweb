@@ -6,6 +6,14 @@ volumes:
 
 services:
   # REST API
+  #
+  # PAS DE ROUTE PUBLIQUE (decision D8 du change redeployer-ytdl-server-sur-gabelle).
+  # Cette API n'a AUCUNE authentification : ni jeton, ni cle, ni controle d'acces
+  # sur /jobs, /config, /meta, /health. Elle a ete exposee nue sur
+  # ytdl.pantagruweb.club du 2025-10-31 au 2026-01-12.
+  # Le port est publie sur l'hote et le pare-feu Hetzner Cloud ne l'ouvre qu'a
+  # cartons (37.27.5.164/32). Ne PAS remettre de labels traefik ici sans avoir
+  # d'abord donne une authentification a cette API.
   api:
     image: registry.gitlab.com/adralioh/ytdl-server/api:latest
     restart: on-failure
@@ -17,38 +25,74 @@ services:
       YTDL_CELERY_BROKER_URL: amqp://broker
       # Needed if you're using a worker image that has yt-dlp
       YTDL_MODULE: yt_dlp
+    ports:
+      - "8000:8000"
     volumes:
       - ./ytdl-server.yml:/config/ytdl-server.yml:ro
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.pantagruweb-ytdl-server.rule= Host(`ytdl.pantagruweb.club`)
-      - traefik.http.routers.pantagruweb-ytdl-server.entrypoints=web,websecure
-      - traefik.http.services.pantagruweb-ytdl-server.loadbalancer.server.port=8000
-      - traefik.docker.network=saltbox
-    networks:
-      - saltbox
-      - default
 
   # Celery worker
   worker:
     image: registry.gitlab.com/adralioh/ytdl-server/worker:yt_dlp-ffmpeg
     restart: on-failure
     depends_on:
-      - sidecar
-      - database
-      - broker
+      # Le worker ne demarre QUE si la destination est prouvee (voir 'sidecar').
+      sidecar:
+        condition: service_completed_successfully
+      database:
+        condition: service_started
+      broker:
+        condition: service_started
     # Copy the environment from the 'api' service
     environment: *ytdl-environment
     volumes:
       - /mnt/remote/r2-musiquesincongrues-flarum/ytdl/videos:/videos
       - /mnt/volume-fsn1-1/ytdl-server/cache:/.cache
-      - ./cookies.txt:/tmp/cookies.txt
 
+  # Garde de destination.
+  #
+  # Un bind Docker vers un chemin qui existe mais n'est PAS monte reussit
+  # silencieusement : le worker ecrirait alors sur la racine de gabelle
+  # (/dev/sda1, ~18 Go libres) en croyant ecrire dans R2, jusqu'a remplir le
+  # systeme. C'est la panne qui a dure 294 jours, et ce service existe pour
+  # qu'elle ne puisse pas recommencer.
+  #
+  # Il sort en erreur si la destination n'est pas la vraie, ce qui empeche le
+  # worker de demarrer. Il ne couvre que le DEMARRAGE : un montage qui tombe en
+  # cours de route n'est pas rattrape ici.
   sidecar:
     image: busybox:latest
+    restart: "no"
     volumes:
-      - ./cookies.txt:/tmp/cookies.txt
-    command: ["/bin/sh", "-c", "chmod 777 /tmp/cookies.txt && sleep infinity"]
+      - /mnt/remote/r2-musiquesincongrues-flarum/ytdl/videos:/videos
+    command:
+      - /bin/sh
+      - -c
+      - |
+        set -u
+        D=/videos
+        # 1. Le chemin existe.
+        if [ ! -d "$$D" ]; then
+          echo "FATAL: $$D absent" >&2; exit 1
+        fi
+        # 2. Le contenu distant est visible. Un repertoire local vide echoue ici :
+        #    c'est le controle qui distingue "montee et vide" de "pas montee".
+        if [ ! -d "$$D/musiques-incongrues.net" ]; then
+          echo "FATAL: $$D ne porte pas le contenu distant attendu -- destination probablement non montee" >&2
+          echo "       (ne PAS creer ce repertoire pour faire passer ce controle)" >&2
+          exit 1
+        fi
+        # 3. L'ecriture est verifiee, pas supposee -- ecrite PUIS relue.
+        W="$$D/.sidecar-witness-$$$$"
+        if ! echo "ok" > "$$W" 2>/dev/null; then
+          echo "FATAL: ecriture refusee sur $$D" >&2; exit 1
+        fi
+        if [ "$$(cat "$$W" 2>/dev/null)" != "ok" ]; then
+          echo "FATAL: relecture incorrecte sur $$D" >&2; rm -f "$$W"; exit 1
+        fi
+        rm -f "$$W"
+        # Informatif : le type de systeme de fichiers, sans valeur bloquante.
+        grep " $$D " /proc/mounts || true
+        echo "OK: destination montee, contenu distant visible, ecriture relue"
 
   # Database / Celery backend
   database:
@@ -70,7 +114,3 @@ services:
     hostname: ytdl-broker
     volumes:
       - broker-data:/var/lib/rabbitmq
-
-networks:
-  saltbox:
-    external: true
