@@ -52,12 +52,19 @@ services:
       # Le fichier lui-meme n'est PAS dans ce depot et n'y entrera pas : c'est
       # un jeton de session Google complet, pas un simple cookie de lecture.
       # Seul le CHEMIN est declare ici. Le fichier vit sur gabelle en
-      # /opt/ytdl-server/cookies.txt, mode 0400, uid 235000 — celui du worker.
+      # /opt/ytdl-server/cookies.txt, mode 0600, uid 235000 — celui du worker.
       #
-      # Sans lui, YouTube refuse : « Sign in to confirm you're not a bot ».
-      # S'il disparait ou expire, les telechargements echouent avec ce message
-      # et rien d'autre ne le signale : c'est le premier endroit ou regarder.
-      - /opt/ytdl-server/cookies.txt:/cookies.txt:ro
+      # MONTE EN ECRITURE, et ce n'est pas un oubli. yt-dlp REECRIT le fichier
+      # de cookies apres chaque telechargement : c'est ainsi qu'il conserve une
+      # session valide. Monte en lecture seule, il echoue avec
+      # `OSError: [Errno 30] Read-only file system: '/cookies.txt'` — teste.
+      # L'ecriture est donc utile : elle prolonge la duree de vie de la session.
+      #
+      # Sans ce fichier, YouTube refuse : « Sign in to confirm you're not a
+      # bot ». S'il disparait ou expire, les telechargements echouent avec ce
+      # message et rien d'autre ne le signale : c'est le premier endroit ou
+      # regarder.
+      - /opt/ytdl-server/cookies.txt:/cookies.txt
 
   # Garde de destination.
   #
