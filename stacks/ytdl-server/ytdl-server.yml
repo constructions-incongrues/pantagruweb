@@ -9,10 +9,21 @@ download_dir: /videos
 # `403 ForbiddenYTDLOption`. C'est delibere cote ytdl-server : laisser un
 # appelant designer un fichier a lire ouvrirait une lecture arbitraire.
 #
-# `ytdl_default_opts` echappe a cette liste parce qu'elle vient de
-# l'exploitant, pas du reseau. C'est le mecanisme prevu pour ce cas.
+# Ces options-la echappent a la liste blanche parce qu'elles viennent de
+# l'exploitant et non du reseau. C'est le mecanisme prevu pour ce cas.
 #
-# Le fichier designe n'est pas dans ce depot : voir le commentaire du bind
-# `cookies` dans compose.yaml.
-ytdl_default_opts:
-  cookiefile: /cookies.txt
+# ATTENTION AU NOM DE LA CLE. L'option s'appelle `ytdl_default_opts` dans la
+# documentation et dans la reponse de `/config`, mais sa clé YAML est
+# IMBRIQUEE : `ytdl_opts` > `default_opts`
+# (`config_option.py`: `config_key=('ytdl_opts', 'default_opts')`).
+# Ecrite a plat, elle est ignoree en silence — le serveur demarre, sert, et
+# `/config` renvoie `ytdl_default_opts: {}` sans le moindre avertissement.
+#
+# La fusion se fait cote API, dans `create_job` : le worker n'a pas besoin de
+# ce fichier.
+#
+# Le fichier de cookies designe n'est pas dans ce depot : voir le commentaire
+# du bind `cookies` dans compose.yaml.
+ytdl_opts:
+  default_opts:
+    cookiefile: /cookies.txt
