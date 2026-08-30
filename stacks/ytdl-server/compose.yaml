@@ -102,7 +102,14 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: ytdl
     volumes:
-      - database:/var/lib/postgresql/data
+      # Monte a la RACINE, pas sur /data. Depuis PostgreSQL 18 l'image range le
+      # cluster dans un sous-repertoire par version majeure (18/docker), et
+      # refuse de demarrer si elle trouve des donnees sous /var/lib/postgresql/data.
+      # Le volume survivant porte deja cette disposition, plus un lien
+      # symbolique `data -> .` pose le 2025-10-22 qui rend l'ancien chemin
+      # toujours valide. Monter sur /data cassait donc le demarrage sans que le
+      # compose du depot n'ait jamais decrit la realite.
+      - database:/var/lib/postgresql
 
   # Celery broker.
   # You can also use a different type (such as Redis) as long as it's supported
