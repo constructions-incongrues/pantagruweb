@@ -121,7 +121,7 @@ def construire_preavis(fichiers_avec_tailles, date_emission, delai_jours=PREAVIS
     }
 
 
-def purgeables(preavis, listing, created_at, date_execution, zones=ZONES_COMMUNES):
+def purgeables(preavis, listing, created_at, date_execution, zones=ZONES_COMMUNES, force=False):
     """Applique la triple condition de la spec, revérifiée à l'exécution.
 
     Un chemin n'est purgeable que s'il est (1) listé dans le préavis,
@@ -130,9 +130,15 @@ def purgeables(preavis, listing, created_at, date_execution, zones=ZONES_COMMUNE
     ré-ajouté sous un nom listé (nouveau `created_at`, postérieur) est un autre
     fichier, on l'épargne (protection re-upload, design D-E). Une date d'ajout
     absente (fichier disparu du listing API) vaut « 9999 » : épargné, côté sûr.
-    Lève PreavisNonEchu tant que la date de purge n'est pas atteinte.
+
+    Lève PreavisNonEchu tant que la date de purge n'est pas atteinte — SAUF si
+    `force` (change `forcer-la-purge-avant-echeance`) : le mainteneur saute
+    alors le SEUL contrôle d'échéance, les autres conditions ci-dessus tenant
+    toutes. incongru-voix: lessig — purge sans préavis échu régulée par
+    architecture (--force) — recours: corbeille 7 j + compte-rendu (voir proposal).
     """
-    if date_execution < date.fromisoformat(preavis["date_purge"]):
+    # incongru-voix: lessig — purge sans préavis échu régulée par architecture (--force) — recours: corbeille 7 j + compte-rendu
+    if not force and date_execution < date.fromisoformat(preavis["date_purge"]):
         raise PreavisNonEchu(
             f"préavis échu le {preavis['date_purge']}, nous sommes le {date_execution}"
         )
@@ -216,11 +222,18 @@ def texte_preavis(preavis):
 
 
 def construire_compte_rendu(
-    supprimes, tailles, sauves, re_rempl, ecarts, date_execution, corbeille_jours=CORBEILLE_JOURS
+    supprimes, tailles, sauves, re_rempl, ecarts, date_execution,
+    corbeille_jours=CORBEILLE_JOURS, force=False,
 ):
-    """Structure du compte rendu d'exécution d'une purge."""
+    """Structure du compte rendu d'exécution d'une purge.
+
+    `force` (purge exécutée avant l'échéance du préavis) est consigné : le texte
+    du compte-rendu en fait un avertissement de récupération, seul recours des
+    membres qui n'ont pas eu le préavis complet.
+    """
     return {
         "date": date_execution.isoformat(),
+        "force": force,
         "supprimes": supprimes,
         "octets_supprimes": sum(tailles.get(c, 0) for c in supprimes),
         "sauves": sauves,
@@ -233,6 +246,13 @@ def construire_compte_rendu(
 def texte_compte_rendu(cr):
     """Le compte rendu prêt à poster — même une purge sans effet rend compte."""
     parties = [f"**Compte rendu de purge des zones communes** — {cr['date']}", ""]
+    if cr.get("force") and cr["supprimes"]:
+        parties += [
+            "⚠ **Purge exécutée sans attendre l'échéance du préavis.** Les fichiers "
+            f"ci-dessous sont **récupérables en corbeille jusqu'au {cr['liberation_corbeille']}** "
+            "— déplace-les d'ici là si tu les voulais ; passé cette date, c'est définitif.",
+            "",
+        ]
     if cr["supprimes"]:
         parties += [
             f"Supprimés : {len(cr['supprimes'])} fichiers, "
@@ -343,13 +363,17 @@ def commande_releve(racine, travail, created_at, vus=None, aujourdhui=None, avec
     return 0
 
 
-def commande_purge(racine, travail, chemin_preavis, created_at, aujourdhui=None, confirmer=input):
+def commande_purge(racine, travail, chemin_preavis, created_at, aujourdhui=None, confirmer=input, force=False):
     """Purge : conditions revérifiées (dont la date d'ajout courante), dry-run,
     confirmation, suppression.
 
     `created_at` ({chemin: 'AAAA-MM-JJ'}) est relu par l'API au moment d'exécuter
     (design D-E) : il porte la protection re-upload. `main` refuse en amont si
     l'API est injoignable — la purge ne s'exécute jamais sans dates d'ajout.
+
+    `force` (change `forcer-la-purge-avant-echeance`) saute le contrôle
+    d'échéance ; il exige alors une confirmation supplémentaire qui nomme ce
+    qu'on abandonne, et marque le compte-rendu (récupération en corbeille).
     """
     aujourdhui = aujourdhui or date.today()
     racine = Path(racine)
@@ -361,7 +385,7 @@ def commande_purge(racine, travail, chemin_preavis, created_at, aujourdhui=None,
     tailles = dict(listing)
 
     try:
-        a_purger = purgeables(preavis, chemins, created_at, aujourdhui)
+        a_purger = purgeables(preavis, chemins, created_at, aujourdhui, force=force)
     except PreavisNonEchu as refus:
         print(f"REFUS : {refus}", file=sys.stderr)
         return 1
@@ -378,7 +402,18 @@ def commande_purge(racine, travail, chemin_preavis, created_at, aujourdhui=None,
     if not a_purger:
         print("Rien à purger.")
     else:
-        if confirmer("Le préavis a-t-il été posté sur le canal ? [oui/NON] ").strip().lower() != "oui":
+        # Double confirmation. Chemin forcé : la 1re nomme ce qu'on abandonne
+        # (préavis non échu), le chemin normal la remplace par « préavis posté ? ».
+        if force:
+            print(f"FORÇAGE — purge AVANT l'échéance du préavis ({preavis['date_purge']}).",
+                  file=sys.stderr)
+            print("  Les membres n'ont pas eu le préavis complet. Leur seul recours devient la "
+                  f"corbeille (7 j) et le compte-rendu : POSTE-LE.", file=sys.stderr)
+            phrase = "purger sans preavis echu"
+            if confirmer(f"Pour forcer, tapez « {phrase} » : ").strip() != phrase:
+                print("Purge forcée annulée.", file=sys.stderr)
+                return 1
+        elif confirmer("Le préavis a-t-il été posté sur le canal ? [oui/NON] ").strip().lower() != "oui":
             print("Purge annulée : le préavis doit être publié d'abord.", file=sys.stderr)
             return 1
         attendu = f"purger {len(a_purger)} fichiers"
@@ -420,6 +455,7 @@ def commande_purge(racine, travail, chemin_preavis, created_at, aujourdhui=None,
         re_rempl=re_remplissage(apparus, tailles),
         ecarts=ecarts,
         date_execution=aujourdhui,
+        force=force,
     )
     nom = f"purge-{aujourdhui.isoformat()}"
     (travail / f"{nom}.json").write_text(
@@ -476,6 +512,9 @@ def main(argv=None):
     p_purge = sous.add_parser("purge", help="exécute un préavis échu, après confirmation")
     p_purge.add_argument("--from", dest="preavis", required=True,
                          help="le fichier preavis-AAAA-MM-JJ.json à exécuter")
+    p_purge.add_argument("--force", action="store_true",
+                         help="DÉCISION DU MAINTENEUR : purger AVANT l'échéance du préavis "
+                              "(double confirmation ; corbeille + compte-rendu restent le recours)")
     p_corbeille = sous.add_parser(
         "corbeille", help="liste de contrôle du vidage sélectif à J+7 (geste web)"
     )
@@ -503,7 +542,7 @@ def main(argv=None):
         print(f"REFUS : {erreur}. La purge exige les dates d'ajout put.io pour revérifier "
               f"chaque fichier — rien n'est supprimé.", file=sys.stderr)
         return 1
-    return commande_purge(args.racine, args.travail, args.preavis, created_at)
+    return commande_purge(args.racine, args.travail, args.preavis, created_at, force=args.force)
 
 
 if __name__ == "__main__":

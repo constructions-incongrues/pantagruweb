@@ -6,6 +6,8 @@ Fixtures réelles capturées le 2026-08-31 via le montage /mnt/remote/putio
 (dépôt secretariat).
 """
 
+import json
+import tempfile
 import unittest
 from datetime import date
 from pathlib import Path
@@ -434,6 +436,84 @@ class TestScanDesZones(unittest.TestCase):
             listing = pzc.scanner_zones(racine, zones=("chill.institute", "putflix"))
 
             self.assertEqual(listing, [("chill.institute/Un Film/film.mkv", 10)])
+
+
+class TestForcageAvantEcheance(unittest.TestCase):
+    """Change `forcer-la-purge-avant-echeance` : bypass d'échéance, gardé.
+
+    Le forçage saute LE SEUL contrôle d'échéance, jamais les autres gardes ni
+    la corbeille, et exige une double confirmation. Recours des membres déplacé
+    de « déplacer avant » à « récupérer après » (corbeille + compte-rendu).
+    """
+
+    def setUp(self):
+        self.preavis = pzc.construire_preavis(
+            [("chill.institute/vieux.mkv", 100)], date_emission=date(2026, 8, 31), delai_jours=7
+        )  # échéance 2026-09-07
+        self.created_at = {"chill.institute/vieux.mkv": "2026-07-01"}
+
+    def test_force_ne_leve_pas_avant_echeance(self):
+        r = pzc.purgeables(
+            self.preavis, ["chill.institute/vieux.mkv"], self.created_at, date(2026, 8, 31), force=True
+        )
+        self.assertEqual(r, ["chill.institute/vieux.mkv"])
+
+    def test_sans_force_leve_toujours(self):
+        with self.assertRaises(pzc.PreavisNonEchu):
+            pzc.purgeables(self.preavis, ["chill.institute/vieux.mkv"], self.created_at, date(2026, 8, 31))
+
+    def test_force_garde_la_protection_re_upload(self):
+        """Forcé mais un fichier ré-ajouté après l'émission reste épargné."""
+        reajoute = {"chill.institute/vieux.mkv": "2026-09-05"}
+        r = pzc.purgeables(
+            self.preavis, ["chill.institute/vieux.mkv"], reajoute, date(2026, 8, 31), force=True
+        )
+        self.assertEqual(r, [])
+
+    def test_compte_rendu_force_est_decouvrable(self):
+        cr = pzc.construire_compte_rendu(
+            supprimes=["chill.institute/vieux.mkv"],
+            tailles={"chill.institute/vieux.mkv": 100},
+            sauves=[], re_rempl=pzc.re_remplissage([], {}), ecarts=[],
+            date_execution=date(2026, 8, 31), force=True,
+        )
+        self.assertTrue(cr["force"])
+        texte = pzc.texte_compte_rendu(cr).lower()
+        self.assertIn("sans attendre", texte)
+        self.assertIn("récupérables en corbeille", texte)
+        self.assertIn(cr["liberation_corbeille"], pzc.texte_compte_rendu(cr))  # 2026-09-07
+
+    def _racine_temp(self, tmp):
+        racine = Path(tmp)
+        (racine / "chill.institute").mkdir()
+        cible = racine / "chill.institute" / "vieux.mkv"
+        cible.write_bytes(b"x" * 100)
+        travail = racine / "travail"
+        travail.mkdir()
+        pre = travail / "preavis.json"
+        pre.write_text(json.dumps(self.preavis), encoding="utf-8")
+        return racine, travail, pre, cible
+
+    def test_commande_purge_force_double_confirmation_supprime(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            racine, travail, pre, cible = self._racine_temp(tmp)
+            reponses = iter(["purger sans preavis echu", "purger 1 fichiers"])
+            rc = pzc.commande_purge(
+                racine, travail, pre, self.created_at, aujourdhui=date(2026, 8, 31),
+                confirmer=lambda _p: next(reponses), force=True,
+            )
+            self.assertEqual(rc, 0)
+            self.assertFalse(cible.exists())  # supprimé après double confirmation
+
+    def test_commande_purge_force_mauvaise_phrase_annule(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            racine, travail, pre, cible = self._racine_temp(tmp)
+            rc = pzc.commande_purge(
+                racine, travail, pre, self.created_at, aujourdhui=date(2026, 8, 31),
+                confirmer=lambda _p: "oui", force=True,  # ne reconnaît pas la purge sans préavis
+            )
+            self.assertEqual(rc, 1)
+            self.assertTrue(cible.exists())  # rien supprimé : la phrase de forçage était fausse
 
 
 if __name__ == "__main__":
