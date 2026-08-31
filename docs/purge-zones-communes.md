@@ -27,12 +27,32 @@ au lieu de le compter depuis sa première observation. Conséquence : la purge
 dépend entièrement de l'API pour l'âge ; API injoignable = cycle sauté, aucun
 repli.*
 
+## Déploiement des scripts (préalable)
+
+Les scripts ne sont **pas** copiés à la main : ils sont déployés par le
+**Komodo Repo `pantagruweb-main`**, qui clone ce dépôt sur `gabelle` dans
+`/etc/komodo/repos/pantagruweb-main/`. Un lien de confort y mène :
+`~/scripts-purge -> /etc/komodo/repos/pantagruweb-main/scripts` (posé une fois,
+il suit les pulls).
+
+**Avant tout cycle, si le code a changé : déclencher un `pull` du Repo depuis
+l'UI Komodo.** Sinon tu exécutes une version périmée. Le `pull` est la première
+étape, non négociable — aucun contrôle ne le vérifie, c'est à toi de le faire.
+
+Les commandes ci-dessous se lancent depuis le clone, en `pantagruweb` :
+
+```bash
+cd ~/scripts-purge
+```
+
 ## Le cycle (manuel — rien ne tourne seul)
 
-Sur `gabelle`, en tant que `pantagruweb`. **Le relevé est sans état** : il ne
-tient plus aucun fichier d'observation, il lit l'âge (dates d'ajout) et le
-visionnage par l'API à chaque cycle. Seuls les préavis et comptes rendus vivent
-dans `~/purge-zones-communes/` — de la sortie, pas de l'état à préserver.
+Sur `gabelle`, en tant que `pantagruweb`, depuis `~/scripts-purge` (le clone
+Komodo). **Le relevé est sans état** : il ne tient plus aucun fichier
+d'observation, il lit l'âge (dates d'ajout) et le visionnage par l'API à chaque
+cycle. Seuls les préavis et comptes rendus vivent dans `~/purge-zones-communes/`
+— de la sortie, pas de l'état à préserver, et hors du clone : ils survivent aux
+pulls.
 
 1. **Relevé** : `python3 purge_zones_communes.py releve`
    Lit l'API (dates d'ajout + visionnage) et le montage (tailles, occupation).
