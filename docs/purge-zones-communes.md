@@ -74,6 +74,29 @@ pulls.
    - sinon : supprimer **uniquement** ces fichiers, un à un.
    Poster ensuite le complément de compte rendu (espace effectivement libéré).
 
+## Forcer avant l'échéance (décision du mainteneur)
+
+La purge refuse par défaut de s'exécuter avant la date d'échéance du préavis —
+c'est la garde qui donne aux membres 7 jours pour déplacer ce qu'ils veulent
+garder. Le mainteneur peut passer outre avec `--force` :
+
+```bash
+python3 purge_zones_communes.py purge --from ~/purge-zones-communes/preavis-<date>.json --force
+```
+
+`--force` saute **le seul** contrôle d'échéance. Tout le reste tient : liste
+blanche, revérification `created_at`, présence en zone, et surtout la
+**corbeille**. Le forçage exige une **double confirmation** : d'abord taper
+`purger sans preavis echu` (qui nomme ce qu'on abandonne), puis la confirmation
+finale `purger N fichiers`. Une phrase erronée annule tout, sans rien supprimer.
+
+**Ce que ça coûte, et le seul recours qui reste.** Forcer, c'est supprimer sans
+que les membres aient eu le préavis complet. Leur recours se déplace de
+« déplacer avant » à « récupérer après » : les fichiers restent en corbeille
+7 jours, et le compte-rendu le dit noir sur blanc. **Ce recours n'existe que si
+tu postes le compte-rendu** — sinon personne ne sait qu'il faut aller voir la
+corbeille. Poster le compte-rendu d'une purge forcée n'est pas optionnel.
+
 ## Interdits et replis
 
 - **Jamais `rclone cleanup putio:`** — vide *toute* la corbeille, y compris
