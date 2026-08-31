@@ -362,6 +362,71 @@ class TestNeutralisationDesNomsHostiles(unittest.TestCase):
             self.assertNotIn("\n", ligne.rstrip("\n"))
 
 
+class TestEligibiliteVisionnage(unittest.TestCase):
+    """Change `purger-selon-le-visionnage-putio` : le vu part plus tôt.
+
+    Règle : éligible si (vu ET âge > seuil court) OU (âge > seuil long).
+    Seuils testés en explicite (7 / 14) pour rester robuste aux constantes.
+    """
+
+    AUJ = date(2026, 8, 31)
+
+    def _etat(self, jours_depuis):
+        from datetime import timedelta
+        return {"chill.institute/f.mkv": (self.AUJ - timedelta(days=jours_depuis)).isoformat()}
+
+    def test_vu_et_vieux_du_seuil_court_est_eligible(self):
+        etat = self._etat(10)  # entre 7 et 14
+        r = pzc.eligibles(etat, self.AUJ, vus={"chill.institute/f.mkv"}, age_jours=14, age_vu_jours=7)
+        self.assertEqual(r, ["chill.institute/f.mkv"])
+
+    def test_non_vu_attend_le_seuil_long(self):
+        etat = self._etat(10)  # entre 7 et 14, mais jamais vu
+        r = pzc.eligibles(etat, self.AUJ, vus=set(), age_jours=14, age_vu_jours=7)
+        self.assertEqual(r, [])
+
+    def test_le_seuil_long_reste_inconditionnel(self):
+        etat = self._etat(20)  # au-delà de 14
+        vu = pzc.eligibles(etat, self.AUJ, vus={"chill.institute/f.mkv"}, age_jours=14, age_vu_jours=7)
+        non_vu = pzc.eligibles(etat, self.AUJ, vus=set(), age_jours=14, age_vu_jours=7)
+        self.assertEqual(vu, ["chill.institute/f.mkv"])
+        self.assertEqual(non_vu, ["chill.institute/f.mkv"])  # éligible même jamais vu
+
+    def test_statut_absent_repli_sur_seuil_long(self):
+        """vus=None (API indisponible) ⇒ comportement du seuil long seul."""
+        etat = self._etat(10)
+        self.assertEqual(pzc.eligibles(etat, self.AUJ, vus=None, age_jours=14, age_vu_jours=7), [])
+
+    def test_le_visionnage_n_allonge_jamais_un_sursis(self):
+        """Un fichier au-delà du seuil long est éligible ; le visionnage ne le retarde pas."""
+        etat = self._etat(20)
+        self.assertEqual(
+            pzc.eligibles(etat, self.AUJ, vus=set(), age_jours=14, age_vu_jours=7),
+            ["chill.institute/f.mkv"],
+        )
+
+    def test_preavis_marque_les_fichiers_vus(self):
+        """Le préavis dit pourquoi (vu) sans nommer qui — design D5, tâche 3.2."""
+        preavis = pzc.construire_preavis(
+            [("chill.institute/film.mkv", 100), ("chill.institute/jamais.mkv", 200)],
+            self.AUJ, delai_jours=7, vus={"chill.institute/film.mkv"},
+        )
+        marques = {f["chemin"]: f.get("vu") for f in preavis["fichiers"]}
+        self.assertTrue(marques["chill.institute/film.mkv"])
+        self.assertFalse(marques["chill.institute/jamais.mkv"])
+        texte = pzc.texte_preavis(preavis)
+        ligne_vu = next(l for l in texte.split("\n") if "film.mkv" in l)
+        self.assertIn("vu", ligne_vu.lower())
+        # aucune personne nommée dans le texte
+        self.assertNotIn("@", texte)
+
+    def test_delais_totaux_resserres(self):
+        """Constantes cohérentes : vu part à 14 j (7+7), non-vu à 21 j (14+7), corbeille 7 j."""
+        self.assertEqual(pzc.AGE_VU_JOURS + pzc.PREAVIS_JOURS, 14)   # fichier vu
+        self.assertEqual(pzc.AGE_JOURS + pzc.PREAVIS_JOURS, 21)      # fichier non vu
+        self.assertEqual(pzc.CORBEILLE_JOURS, 7)                     # second recours inchangé
+
+
 class TestScanDesZones(unittest.TestCase):
     """Le scan ne parcourt que les zones déclarées — jamais les dossiers personnels."""
 
