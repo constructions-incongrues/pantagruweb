@@ -78,60 +78,42 @@ class TestFiltrageListeBlanche(unittest.TestCase):
         )
 
 
-class TestAgeParObservation(unittest.TestCase):
-    """Design D3 — l'âge est la date de première observation, jamais le mtime."""
+class TestAgeParCreatedAt(unittest.TestCase):
+    """`baser-l-age-de-purge-sur-created-at` — l'âge est la date d'ajout put.io."""
 
-    def test_un_nouveau_fichier_est_date_du_jour(self):
-        etat, apparus, disparus = pzc.maj_observations(
-            {}, ["chill.institute/Nouveau Film (2026)/film.mkv"], date(2026, 8, 31)
-        )
-        self.assertEqual(etat, {"chill.institute/Nouveau Film (2026)/film.mkv": "2026-08-31"})
-        self.assertEqual(apparus, ["chill.institute/Nouveau Film (2026)/film.mkv"])
-        self.assertEqual(disparus, [])
-
-    def test_un_fichier_disparu_sort_de_l_etat(self):
-        etat, apparus, disparus = pzc.maj_observations(
-            {"putflix/parti.mkv": "2026-07-01", "putflix/reste.mkv": "2026-07-01"},
-            ["putflix/reste.mkv"],
-            date(2026, 8, 31),
-        )
-        self.assertEqual(etat, {"putflix/reste.mkv": "2026-07-01"})
-        self.assertEqual(apparus, [])
-        self.assertEqual(disparus, ["putflix/parti.mkv"])
-
-    def test_une_observation_existante_garde_sa_date(self):
-        etat, _, _ = pzc.maj_observations(
-            {"putflix/deja-vu.mkv": "2026-07-01"}, ["putflix/deja-vu.mkv"], date(2026, 8, 31)
-        )
-        self.assertEqual(etat["putflix/deja-vu.mkv"], "2026-07-01")
-
-    def test_etat_vide_rien_d_eligible(self):
-        """Échec du côté sûr : état perdu = compteurs à zéro = aucune purge possible."""
+    def test_created_at_vide_rien_d_eligible(self):
+        """Échec du côté sûr : sans date d'ajout (API absente), aucune purge possible."""
         self.assertEqual(pzc.eligibles({}, date(2026, 8, 31)), [])
 
     def test_eligible_strictement_au_dela_de_l_age(self):
-        """« Depuis plus de 30 jours » : 30 jours pile ne suffit pas."""
-        etat = {
-            "chill.institute/pile-30j.mkv": "2026-08-01",
-            "chill.institute/31-jours.mkv": "2026-07-31",
+        """« Depuis plus de N jours » : N jours pile ne suffit pas."""
+        created_at = {
+            "chill.institute/pile-14j.mkv": "2026-08-17",   # 14 j pile
+            "chill.institute/15-jours.mkv": "2026-08-16",   # 15 j
         }
         self.assertEqual(
-            pzc.eligibles(etat, date(2026, 8, 31), age_jours=30),
-            ["chill.institute/31-jours.mkv"],
+            pzc.eligibles(created_at, date(2026, 8, 31), age_jours=14),
+            ["chill.institute/15-jours.mkv"],
         )
 
-    def test_le_mtime_n_entre_jamais_dans_l_age(self):
-        """Un fichier au mtime très ancien, observé aujourd'hui, n'est pas éligible."""
-        chemin_vieux_mtime, _ = charger_fixture_zones()[0]
-        etat, _, _ = pzc.maj_observations({}, [chemin_vieux_mtime], date(2026, 8, 31))
-        self.assertEqual(pzc.eligibles(etat, date(2026, 8, 31)), [])
+    def test_age_reel_des_le_premier_cycle(self):
+        """Le cœur du change : un fichier ajouté il y a longtemps est éligible
+        dès le premier cycle, sans aucune observation préalable."""
+        created_at = {"chill.institute/vieux.mkv": "2026-08-01"}  # 30 j
+        self.assertEqual(pzc.eligibles(created_at, date(2026, 8, 31)), ["chill.institute/vieux.mkv"])
+
+    def test_un_fichier_ajoute_aujourd_hui_n_est_pas_eligible(self):
+        """La date d'ajout gouverne : un fichier neuf a 0 jour, quel que soit son mtime."""
+        created_at = {"chill.institute/frais.mkv": "2026-08-31"}
+        self.assertEqual(pzc.eligibles(created_at, date(2026, 8, 31)), [])
 
 
 class TestTripleConditionDePurge(unittest.TestCase):
     """Spec — aucune suppression sans préavis publié ; design D6."""
 
     def setUp(self):
-        self.etat = {
+        # created_at courant (relu par la purge), les deux ajoutés avant l'émission
+        self.created_at = {
             "chill.institute/vieux/film.mkv": "2026-07-01",
             "putflix/ancien.mkv": "2026-07-01",
         }
@@ -153,8 +135,8 @@ class TestTripleConditionDePurge(unittest.TestCase):
             "putflix/ancien.mkv",
             "chill.institute/eligible-depuis-hier.mkv",
         ]
-        etat = dict(self.etat, **{"chill.institute/eligible-depuis-hier.mkv": "2026-07-02"})
-        resultat = pzc.purgeables(self.preavis, listing, etat, date(2026, 9, 14))
+        created_at = dict(self.created_at, **{"chill.institute/eligible-depuis-hier.mkv": "2026-07-02"})
+        resultat = pzc.purgeables(self.preavis, listing, created_at, date(2026, 9, 14))
         self.assertEqual(
             sorted(resultat), ["chill.institute/vieux/film.mkv", "putflix/ancien.mkv"]
         )
@@ -164,28 +146,36 @@ class TestTripleConditionDePurge(unittest.TestCase):
             pzc.purgeables(
                 self.preavis,
                 ["chill.institute/vieux/film.mkv"],
-                self.etat,
+                self.created_at,
                 date(2026, 9, 13),
             )
 
     def test_un_fichier_deplace_n_est_pas_purge(self):
         """Scénario : sauver = déplacer — le fichier absent du listing est épargné."""
         listing = ["putflix/ancien.mkv"]
-        resultat = pzc.purgeables(self.preavis, listing, self.etat, date(2026, 9, 14))
+        resultat = pzc.purgeables(self.preavis, listing, self.created_at, date(2026, 9, 14))
         self.assertEqual(resultat, ["putflix/ancien.mkv"])
 
-    def test_un_fichier_revenu_apres_le_preavis_n_est_pas_purge(self):
-        """Même chemin, mais réobservé après l'émission : c'est un autre fichier."""
-        etat_revenu = dict(self.etat, **{"chill.institute/vieux/film.mkv": "2026-09-05"})
+    def test_un_fichier_reajoute_apres_le_preavis_n_est_pas_purge(self):
+        """Protection re-upload (design D-E) : même chemin, mais date d'ajout
+        courante postérieure à l'émission — c'est un fichier neuf, on l'épargne."""
+        created_at_reajoute = dict(self.created_at, **{"chill.institute/vieux/film.mkv": "2026-09-05"})
         listing = ["chill.institute/vieux/film.mkv", "putflix/ancien.mkv"]
-        resultat = pzc.purgeables(self.preavis, listing, etat_revenu, date(2026, 9, 14))
+        resultat = pzc.purgeables(self.preavis, listing, created_at_reajoute, date(2026, 9, 14))
+        self.assertEqual(resultat, ["putflix/ancien.mkv"])
+
+    def test_un_fichier_sans_date_d_ajout_courante_n_est_pas_purge(self):
+        """La date d'ajout courante manque (disparu du listing API) ⇒ épargné (côté sûr)."""
+        listing = ["chill.institute/vieux/film.mkv", "putflix/ancien.mkv"]
+        created_at_partiel = {"putflix/ancien.mkv": "2026-07-01"}  # film.mkv absent
+        resultat = pzc.purgeables(self.preavis, listing, created_at_partiel, date(2026, 9, 14))
         self.assertEqual(resultat, ["putflix/ancien.mkv"])
 
     def test_une_zone_retiree_de_la_liste_est_protegee(self):
-        """La triple condition revérifie l'appartenance aux zones déclarées."""
+        """La condition revérifie l'appartenance aux zones déclarées."""
         listing = ["chill.institute/vieux/film.mkv", "putflix/ancien.mkv"]
         resultat = pzc.purgeables(
-            self.preavis, listing, self.etat, date(2026, 9, 14), zones=("chill.institute",)
+            self.preavis, listing, self.created_at, date(2026, 9, 14), zones=("chill.institute",)
         )
         self.assertEqual(resultat, ["chill.institute/vieux/film.mkv"])
 
@@ -371,37 +361,37 @@ class TestEligibiliteVisionnage(unittest.TestCase):
 
     AUJ = date(2026, 8, 31)
 
-    def _etat(self, jours_depuis):
+    def _cree(self, jours_depuis):
         from datetime import timedelta
         return {"chill.institute/f.mkv": (self.AUJ - timedelta(days=jours_depuis)).isoformat()}
 
     def test_vu_et_vieux_du_seuil_court_est_eligible(self):
-        etat = self._etat(10)  # entre 7 et 14
-        r = pzc.eligibles(etat, self.AUJ, vus={"chill.institute/f.mkv"}, age_jours=14, age_vu_jours=7)
+        created_at = self._cree(10)  # entre 7 et 14
+        r = pzc.eligibles(created_at, self.AUJ, vus={"chill.institute/f.mkv"}, age_jours=14, age_vu_jours=7)
         self.assertEqual(r, ["chill.institute/f.mkv"])
 
     def test_non_vu_attend_le_seuil_long(self):
-        etat = self._etat(10)  # entre 7 et 14, mais jamais vu
-        r = pzc.eligibles(etat, self.AUJ, vus=set(), age_jours=14, age_vu_jours=7)
+        created_at = self._cree(10)  # entre 7 et 14, mais jamais vu
+        r = pzc.eligibles(created_at, self.AUJ, vus=set(), age_jours=14, age_vu_jours=7)
         self.assertEqual(r, [])
 
     def test_le_seuil_long_reste_inconditionnel(self):
-        etat = self._etat(20)  # au-delà de 14
-        vu = pzc.eligibles(etat, self.AUJ, vus={"chill.institute/f.mkv"}, age_jours=14, age_vu_jours=7)
-        non_vu = pzc.eligibles(etat, self.AUJ, vus=set(), age_jours=14, age_vu_jours=7)
+        created_at = self._cree(20)  # au-delà de 14
+        vu = pzc.eligibles(created_at, self.AUJ, vus={"chill.institute/f.mkv"}, age_jours=14, age_vu_jours=7)
+        non_vu = pzc.eligibles(created_at, self.AUJ, vus=set(), age_jours=14, age_vu_jours=7)
         self.assertEqual(vu, ["chill.institute/f.mkv"])
         self.assertEqual(non_vu, ["chill.institute/f.mkv"])  # éligible même jamais vu
 
     def test_statut_absent_repli_sur_seuil_long(self):
-        """vus=None (API indisponible) ⇒ comportement du seuil long seul."""
-        etat = self._etat(10)
-        self.assertEqual(pzc.eligibles(etat, self.AUJ, vus=None, age_jours=14, age_vu_jours=7), [])
+        """vus=None (visionnage inconnu) ⇒ comportement du seuil long seul."""
+        created_at = self._cree(10)
+        self.assertEqual(pzc.eligibles(created_at, self.AUJ, vus=None, age_jours=14, age_vu_jours=7), [])
 
     def test_le_visionnage_n_allonge_jamais_un_sursis(self):
         """Un fichier au-delà du seuil long est éligible ; le visionnage ne le retarde pas."""
-        etat = self._etat(20)
+        created_at = self._cree(20)
         self.assertEqual(
-            pzc.eligibles(etat, self.AUJ, vus=set(), age_jours=14, age_vu_jours=7),
+            pzc.eligibles(created_at, self.AUJ, vus=set(), age_jours=14, age_vu_jours=7),
             ["chill.institute/f.mkv"],
         )
 

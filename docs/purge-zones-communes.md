@@ -8,8 +8,8 @@ Conception et règle complète : change `purger-les-zones-communes-putio` du dé
 
 Les zones communes sont déclarées nommément : `chill.institute`, `putflix`.
 Tout dossier non déclaré est réputé personnel et n'est **jamais** touché.
-Dans une zone commune, un fichier est supprimé quand il est observé depuis
-plus de **14 jours**, ou dès **7 jours s'il a déjà été visionné** (voir la
+Dans une zone commune, un fichier est supprimé quand il est **présent depuis
+plus de 14 jours**, ou dès **7 jours s'il a déjà été visionné** (voir la
 section « Visionnage » ci-dessous). Un préavis est publié **7 jours** avant.
 La corbeille put.io garde les fichiers **7 jours** après la purge, puis est
 vidée — des seuls fichiers du cycle. Sauver un fichier = le **déplacer** :
@@ -19,23 +19,32 @@ chez soi pour le garder, dans `PANTAGRUWEB/` pour le préserver.
 seuil de base 30→14 j, préavis 14→7 j, seuil du visionné = 7 j. Délai total
 avant suppression : 14 j pour un fichier vu, 21 j pour un non-vu.*
 
-L'âge est la **date de première observation par le relevé** — jamais le mtime,
-qui reflète souvent la date du contenu d'origine.
+L'âge est la **date d'ajout à put.io** (`created_at`, lue par l'API) — jamais le
+mtime, qui reflète souvent la date du contenu d'origine, et **plus** une
+observation accumulée. *Change `baser-l-age-de-purge-sur-created-at`, 2026-08-31 :
+le relevé est désormais sans état — il lit l'âge réel par l'API à chaque cycle,
+au lieu de le compter depuis sa première observation. Conséquence : la purge
+dépend entièrement de l'API pour l'âge ; API injoignable = cycle sauté, aucun
+repli.*
 
 ## Le cycle (manuel — rien ne tourne seul)
 
-Sur `gabelle`, en tant que `pantagruweb`. L'état vit dans
-`~/purge-zones-communes/` (`observations.json` ; sa perte est sans danger :
-compteurs à zéro, rien d'éligible).
+Sur `gabelle`, en tant que `pantagruweb`. **Le relevé est sans état** : il ne
+tient plus aucun fichier d'observation, il lit l'âge (dates d'ajout) et le
+visionnage par l'API à chaque cycle. Seuls les préavis et comptes rendus vivent
+dans `~/purge-zones-communes/` — de la sortie, pas de l'état à préserver.
 
 1. **Relevé** : `python3 purge_zones_communes.py releve`
-   (premier cycle : ajouter `--inventaire-initial`).
+   Lit l'API (dates d'ajout + visionnage) et le montage (tailles, occupation).
    Produit `preavis-<date>.md` (à poster sur discutons), `preavis-<date>.json`
-   (pour la purge) et `occupation-<date>.md`.
+   (pour la purge) et `occupation-<date>.md`. **API injoignable = préavis vide,
+   cycle sauté** (aucun repli — c'est la décision du remplacement franc).
 2. **Poster le préavis** sur discutons. Sans publication, pas de purge.
 3. **À l'échéance** : `python3 purge_zones_communes.py purge --from ~/purge-zones-communes/preavis-<date>.json`.
-   La commande refuse un préavis non échu, affiche son dry-run — **le lire en
-   entier** — puis demande deux confirmations. Elle produit
+   La commande refuse un préavis non échu, **relit les dates d'ajout par l'API**
+   (protection re-upload : un fichier ré-ajouté au même chemin après l'émission
+   est épargné ; API injoignable = purge refusée), affiche son dry-run — **le
+   lire en entier** — puis demande deux confirmations. Elle produit
    `compte-rendu-<date>.md` (à poster) et `purge-<date>.json`.
 4. **Poster le compte rendu** sur discutons.
 5. **À J+7** : `python3 purge_zones_communes.py corbeille --from ~/purge-zones-communes/purge-<date>.json`
@@ -82,16 +91,22 @@ année sont écartés comme « incertains », jamais purgés.
    La suppression emprunte le régime préavis + corbeille ci-dessus — une seule
    porte destructive.
 
-**Prérequis** : lancer d'abord `purge_zones_communes.py releve` (au moins une
-fois), pour que les fichiers à purger soient dans l'état d'observation ; un
-fichier non observé est sauté par la purge (côté sûr), pas supprimé.
+La purge des doublons emprunte la même porte que la purge par âge : elle relit
+les dates d'ajout par l'API et n'exécute que les fichiers dont `created_at` est
+antérieur à l'émission du préavis. Un encodage à écarter, ancien, passe ; un
+fichier ré-ajouté au même chemin depuis l'émission est épargné. (Plus de
+prérequis d'« état d'observation » : le relevé est sans état depuis le change
+`baser-l-age-de-purge-sur-created-at`.)
 
 ## Visionnage : le vu part plus tôt
 
 Un fichier déjà **consommé** (streamé/ouvert) n'attend plus personne : il
 devient éligible dès **7 jours** au lieu de 14. Le statut vient de l'API
 put.io (`first_accessed_at`), lu par `statut_visionnage.py` — **le seul
-module qui détient le jeton OAuth**, en lecture seule.
+module qui détient le jeton OAuth**, en lecture seule. Depuis le change
+`baser-l-age-de-purge-sur-created-at`, ce module porte aussi les **dates
+d'ajout** (`created_at`, la source d'âge), et il est appelé par le `releve`
+**comme par la `purge`** (qui relit `created_at` pour sa protection re-upload).
 
 - Le `releve` normal interroge l'API automatiquement : il affiche
   « Visionnage : N fichiers vus » et marque chaque fichier concerné du
@@ -100,10 +115,11 @@ module qui détient le jeton OAuth**, en lecture seule.
 - **`first_accessed_at` = premier accès** (streaming, ouverture), y compris
   les annexes d'un film streamé ; `null` = jamais ouvert (garde le seuil de
   14 j).
-- **Si l'API est injoignable, aucun cycle n'est bloqué** : le relevé retombe
-  sur le seuil de base (14 j) pour tout le monde et signale l'avertissement.
-  Le même repli s'obtient à la demande avec `releve --sans-visionnage`, pour
-  lancer un cycle sans toucher au jeton.
+- **Si l'API est injoignable, le cycle est sauté** : sans dates d'ajout, le
+  relevé rend un préavis vide et la purge refuse. Il n'y a **plus de repli**
+  (l'ancienne horloge d'observation et le drapeau `--sans-visionnage` ont
+  disparu) — c'est le prix assumé du remplacement franc : la purge s'appuie
+  désormais entièrement sur l'API pour l'âge.
 
 Le jeton n'apparaît jamais dans un message, un préavis ou un fichier de
 travail (garde testée).
