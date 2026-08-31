@@ -1,18 +1,20 @@
 """Purge des zones communes de put.io — logique et procédure manuelle.
 
-Change `purger-les-zones-communes-putio` (dépôt secretariat). Règle :
-les zones communes sont déclarées nommément ; tout dossier non déclaré
-est réputé personnel et n'est jamais touché. L'âge d'un fichier est sa
-date de première observation par le relevé — jamais son mtime.
+Changes `purger-les-zones-communes-putio` puis `baser-l-age-de-purge-sur-created-at`
+(dépôt secretariat). Règle : les zones communes sont déclarées nommément ; tout
+dossier non déclaré est réputé personnel et n'est jamais touché. L'âge d'un
+fichier est sa **date d'ajout à put.io** (`created_at`, via l'API) — jamais son
+mtime, et plus une observation accumulée. Le relevé est sans état.
 
 Usage (sur gabelle, à la main — rien ne tourne seul) :
 
-    python3 purge_zones_communes.py releve [--inventaire-initial]
+    python3 purge_zones_communes.py releve
     python3 purge_zones_communes.py purge --from <preavis-AAAA-MM-JJ.json>
 
-`releve` met à jour l'état d'observation et génère le préavis prêt à
-poster ; `purge` exige le préavis échu, affiche son dry-run et demande
-confirmation avant toute suppression.
+`releve` lit l'API (dates d'ajout + visionnage) et génère le préavis prêt à
+poster ; `purge` exige le préavis échu, **relit les dates d'ajout par l'API**
+(protection re-upload), affiche son dry-run et demande confirmation avant toute
+suppression. Sans l'API, le relevé rend un préavis vide et la purge refuse.
 """
 
 import argparse
@@ -49,22 +51,6 @@ def zones_absentes(chemins, zones=ZONES_COMMUNES):
     """Zones déclarées dont aucun chemin ne relève — écart à signaler."""
     presentes = {chemin.partition("/")[0] for chemin in chemins}
     return [zone for zone in zones if zone not in presentes]
-
-
-def maj_observations(etat, chemins, aujourdhui):
-    """Met à jour l'état des premières observations.
-
-    Un chemin nouveau est daté du jour ; un chemin disparu sort de l'état
-    (s'il revient, il repart de zéro — c'est la garde « fichier revenu »).
-    Retourne (nouvel_etat, apparus, disparus).
-    """
-    presents = set(chemins)
-    nouvel_etat = {c: d for c, d in etat.items() if c in presents}
-    apparus = [c for c in chemins if c not in etat]
-    for chemin in apparus:
-        nouvel_etat[chemin] = aujourdhui.isoformat()
-    disparus = sorted(c for c in etat if c not in presents)
-    return nouvel_etat, apparus, disparus
 
 
 def scanner_zones(racine, zones=ZONES_COMMUNES):
@@ -135,14 +121,16 @@ def construire_preavis(fichiers_avec_tailles, date_emission, delai_jours=PREAVIS
     }
 
 
-def purgeables(preavis, listing, etat, date_execution, zones=ZONES_COMMUNES):
+def purgeables(preavis, listing, created_at, date_execution, zones=ZONES_COMMUNES):
     """Applique la triple condition de la spec, revérifiée à l'exécution.
 
     Un chemin n'est purgeable que s'il est (1) listé dans le préavis,
-    (2) encore présent dans une zone déclarée, (3) observé depuis avant
-    l'émission du préavis — un fichier revenu sous un nom listé repart
-    de zéro. Lève PreavisNonEchu tant que la date de purge n'est pas
-    atteinte : jamais de suppression anticipée.
+    (2) encore présent dans une zone déclarée, (3) d'une date d'ajout put.io
+    **courante** antérieure ou égale à l'émission du préavis — un fichier
+    ré-ajouté sous un nom listé (nouveau `created_at`, postérieur) est un autre
+    fichier, on l'épargne (protection re-upload, design D-E). Une date d'ajout
+    absente (fichier disparu du listing API) vaut « 9999 » : épargné, côté sûr.
+    Lève PreavisNonEchu tant que la date de purge n'est pas atteinte.
     """
     if date_execution < date.fromisoformat(preavis["date_purge"]):
         raise PreavisNonEchu(
@@ -153,7 +141,7 @@ def purgeables(preavis, listing, etat, date_execution, zones=ZONES_COMMUNES):
     return [
         f["chemin"]
         for f in preavis["fichiers"]
-        if f["chemin"] in presents and etat.get(f["chemin"], "9999-12-31") <= emission
+        if f["chemin"] in presents and created_at.get(f["chemin"], "9999-12-31") <= emission
     ]
 
 
@@ -274,20 +262,22 @@ def texte_compte_rendu(cr):
     return "\n".join(parties)
 
 
-def eligibles(etat, aujourdhui, vus=None, age_jours=AGE_JOURS, age_vu_jours=AGE_VU_JOURS):
-    """Chemins éligibles à la purge, par âge d'observation et statut de visionnage.
+def eligibles(created_at, aujourdhui, vus=None, age_jours=AGE_JOURS, age_vu_jours=AGE_VU_JOURS):
+    """Chemins éligibles à la purge, par âge d'ajout put.io et statut de visionnage.
 
-    Éligible si `(âge > age_jours)` — le seuil long, inconditionnel — OU
-    `(chemin ∈ vus ET âge > age_vu_jours)` — le seuil court, réservé au
-    visionné. Le visionnage n'est qu'un accélérateur : il ne retarde jamais.
-    `vus` absent (None, API indisponible) ⇒ seul le seuil long s'applique
-    (échec du côté sûr, design D3). L'âge reste la première observation,
-    jamais le mtime.
+    `created_at` est `{chemin: 'AAAA-MM-JJ'}`, la date d'ajout à put.io (source
+    d'âge unique — change `baser-l-age-de-purge-sur-created-at`). Éligible si
+    `(âge > age_jours)` — le seuil long, inconditionnel — OU `(chemin ∈ vus ET
+    âge > age_vu_jours)` — le seuil court, réservé au visionné. Le visionnage
+    n'est qu'un accélérateur : il ne retarde jamais. `vus` absent (None) ⇒ seul
+    le seuil long s'applique. Un fichier sans date d'ajout est absent de
+    `created_at` : il n'est éligible par aucun seuil (échec du côté sûr).
+    L'âge est la date d'ajout, jamais le mtime.
     """
     vus = vus or set()
     retenus = []
-    for chemin, premiere in sorted(etat.items()):
-        age = (aujourdhui - date.fromisoformat(premiere)).days
+    for chemin, ajout in sorted(created_at.items()):
+        age = (aujourdhui - date.fromisoformat(ajout)).days
         if age > age_jours or (chemin in vus and age > age_vu_jours):
             retenus.append(chemin)
     return retenus
@@ -297,44 +287,25 @@ def eligibles(etat, aujourdhui, vus=None, age_jours=AGE_JOURS, age_vu_jours=AGE_
 # Procédure (I/O) — vérifiée par exécution réelle sur gabelle, cf. tasks 3.1/3.2
 
 
-def _charger_observations(chemin_etat):
-    """L'état d'observation ; absent ou illisible = vide (échec du côté sûr)."""
-    try:
-        return json.loads(Path(chemin_etat).read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return {}
+def commande_releve(racine, travail, created_at, vus=None, aujourdhui=None, avec_occupation=True):
+    """Relevé sans état : l'éligibilité vient des dates d'ajout put.io, pas d'un
+    état accumulé (change `baser-l-age-de-purge-sur-created-at`).
 
-
-def commande_releve(racine, travail, inventaire_initial=False, aujourdhui=None, avec_occupation=True, vus=None):
-    """Relevé : met à jour l'état, écrit préavis (JSON + texte) et résumé.
-
-    `vus` (ensemble de chemins visionnés, calculé en amont par la couche API)
-    accélère l'éligibilité du visionné ; `None` ⇒ seul le seuil de base joue.
+    `created_at` ({chemin: 'AAAA-MM-JJ'}) et `vus` viennent de la couche API
+    (statut_visionnage). Rien n'est écrit hors du préavis. `created_at` vide
+    (API indisponible) ⇒ aucun éligible, préavis vide, cycle sauté.
     """
     aujourdhui = aujourdhui or date.today()
     travail = Path(travail)
     travail.mkdir(parents=True, exist_ok=True)
-    chemin_etat = travail / "observations.json"
 
     listing = scanner_zones(racine)
     chemins = [c for c, _ in listing]
     tailles = dict(listing)
 
-    etat_avant = _charger_observations(chemin_etat)
-    etat, apparus, disparus = maj_observations(etat_avant, chemins, aujourdhui)
-    chemin_etat.write_text(
-        json.dumps(etat, ensure_ascii=False, indent=1, sort_keys=True), encoding="utf-8"
-    )
-
-    if inventaire_initial:
-        vises = chemins
-        delai = AGE_JOURS  # la fenêtre initiale vaut l'âge limite
-    else:
-        vises = eligibles(etat, aujourdhui, vus=vus)
-        delai = PREAVIS_JOURS
-
+    vises = eligibles(created_at, aujourdhui, vus=vus)
     preavis = construire_preavis(
-        [(c, tailles.get(c, 0)) for c in vises], aujourdhui, delai_jours=delai, vus=vus
+        [(c, tailles.get(c, 0)) for c in vises], aujourdhui, delai_jours=PREAVIS_JOURS, vus=vus
     )
     nom = f"preavis-{aujourdhui.isoformat()}"
     (travail / f"{nom}.json").write_text(
@@ -363,27 +334,34 @@ def commande_releve(racine, travail, inventaire_initial=False, aujourdhui=None, 
 
     ecarts = [f"zone déclarée introuvable : {z}" for z in zones_absentes(chemins)]
     print(f"Relevé du {aujourdhui} — {len(chemins)} fichiers dans les zones déclarées.")
-    print(f"Apparus : {len(apparus)} · disparus : {len(disparus)} · visés : {len(vises)}")
+    print(f"Datés par l'API : {len(created_at)} · éligibles : {len(vises)}")
     for ecart in ecarts:
         print(f"ÉCART : {ecart}")
+    if not created_at:
+        print("AVERTISSEMENT : aucune date d'ajout (API indisponible) — préavis vide, cycle sauté.")
     print(f"Préavis : {travail / nom}.md (à poster) et .json (pour la purge)")
     return 0
 
 
-def commande_purge(racine, travail, chemin_preavis, aujourdhui=None, confirmer=input):
-    """Purge : triple condition revérifiée, dry-run, confirmation, suppression."""
+def commande_purge(racine, travail, chemin_preavis, created_at, aujourdhui=None, confirmer=input):
+    """Purge : conditions revérifiées (dont la date d'ajout courante), dry-run,
+    confirmation, suppression.
+
+    `created_at` ({chemin: 'AAAA-MM-JJ'}) est relu par l'API au moment d'exécuter
+    (design D-E) : il porte la protection re-upload. `main` refuse en amont si
+    l'API est injoignable — la purge ne s'exécute jamais sans dates d'ajout.
+    """
     aujourdhui = aujourdhui or date.today()
     racine = Path(racine)
     travail = Path(travail)
     preavis = json.loads(Path(chemin_preavis).read_text(encoding="utf-8"))
-    etat = _charger_observations(travail / "observations.json")
 
     listing = scanner_zones(racine)
     chemins = [c for c, _ in listing]
     tailles = dict(listing)
 
     try:
-        a_purger = purgeables(preavis, chemins, etat, aujourdhui)
+        a_purger = purgeables(preavis, chemins, created_at, aujourdhui)
     except PreavisNonEchu as refus:
         print(f"REFUS : {refus}", file=sys.stderr)
         return 1
@@ -433,12 +411,13 @@ def commande_purge(racine, travail, chemin_preavis, aujourdhui=None, confirmer=i
                 except OSError:
                     pass
 
-    apparus_depuis_etat = [c for c in chemins if c not in etat]
+    emission = preavis["date_emission"]
+    apparus = [c for c in chemins if created_at.get(c, "0000-00-00") > emission]
     cr = construire_compte_rendu(
         supprimes=supprimes,
         tailles={**tailles, **{f["chemin"]: f["taille"] for f in preavis["fichiers"]}},
         sauves=sauves,
-        re_rempl=re_remplissage(apparus_depuis_etat, tailles),
+        re_rempl=re_remplissage(apparus, tailles),
         ecarts=ecarts,
         date_execution=aujourdhui,
     )
@@ -493,11 +472,7 @@ def main(argv=None):
     parseur.add_argument("--racine", default="/mnt/remote/putio")
     parseur.add_argument("--travail", default=str(Path.home() / "purge-zones-communes"))
     sous = parseur.add_subparsers(dest="commande", required=True)
-    p_releve = sous.add_parser("releve", help="met à jour l'état et génère le préavis")
-    p_releve.add_argument("--inventaire-initial", action="store_true",
-                          help="premier cycle : tout lister, fenêtre de l'âge limite")
-    p_releve.add_argument("--sans-visionnage", action="store_true",
-                          help="ne pas interroger l'API put.io — repli sur le seuil de base seul")
+    sous.add_parser("releve", help="lit l'API put.io et génère le préavis")
     p_purge = sous.add_parser("purge", help="exécute un préavis échu, après confirmation")
     p_purge.add_argument("--from", dest="preavis", required=True,
                          help="le fichier preavis-AAAA-MM-JJ.json à exécuter")
@@ -507,19 +482,28 @@ def main(argv=None):
     p_corbeille.add_argument("--from", dest="purge", required=True,
                              help="le fichier purge-AAAA-MM-JJ.json du cycle")
     args = parseur.parse_args(argv)
-    if args.commande == "releve":
-        vus = None
-        if not args.inventaire_initial and not args.sans_visionnage:
-            import statut_visionnage  # import local : la logique de purge reste sans réseau
-            vus, erreur = statut_visionnage.statut_visionnage(zones=ZONES_COMMUNES)
-            if erreur:
-                print(f"AVERTISSEMENT — {erreur}", file=sys.stderr)
-            else:
-                print(f"Visionnage : {len(vus)} fichiers vus (partent dès {AGE_VU_JOURS} j).")
-        return commande_releve(args.racine, args.travail, args.inventaire_initial, vus=vus)
+
     if args.commande == "corbeille":
         return commande_corbeille(args.purge)
-    return commande_purge(args.racine, args.travail, args.preavis)
+
+    # releve et purge lisent tous deux l'âge par l'API (source unique, design D-A/D-E)
+    import statut_visionnage  # le seul module à jeton/réseau
+    created_at, vus, erreur = statut_visionnage.statut_fichiers(zones=ZONES_COMMUNES)
+
+    if args.commande == "releve":
+        if erreur:
+            print(f"AVERTISSEMENT — {erreur} : préavis vide, cycle sauté.", file=sys.stderr)
+        else:
+            print(f"API put.io : {len(created_at)} fichiers datés, {len(vus)} vus "
+                  f"(partent dès {AGE_VU_JOURS} j).")
+        return commande_releve(args.racine, args.travail, created_at, vus=vus)
+
+    # purge : sans dates d'ajout, pas de revérification re-upload ⇒ refus (design D-E)
+    if erreur:
+        print(f"REFUS : {erreur}. La purge exige les dates d'ajout put.io pour revérifier "
+              f"chaque fichier — rien n'est supprimé.", file=sys.stderr)
+        return 1
+    return commande_purge(args.racine, args.travail, args.preavis, created_at)
 
 
 if __name__ == "__main__":
