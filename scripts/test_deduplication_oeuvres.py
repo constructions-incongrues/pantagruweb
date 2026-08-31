@@ -223,6 +223,31 @@ class TestArbitrage(unittest.TestCase):
             self.assertTrue(cible.startswith(("chill.institute/", "putflix/")))
             self.assertNotIn("PANTAGRUWEB", cible)
 
+    def test_index_zero_ou_negatif_refuse(self):
+        """Footgun /cso : garder: 0 ne doit pas purger tout le groupe."""
+        groupes = dedup.groupes_a_arbitrer(self.KIDS, [])
+        for mauvais in ("0", "-1"):
+            with self.assertRaises(ValueError, msg=mauvais):
+                dedup.chemins_a_purger(groupes, [mauvais])
+
+    def test_index_hors_plage_refuse(self):
+        """garder: 5 sur un groupe de 2 ne doit pas purger tout le groupe."""
+        groupes = dedup.groupes_a_arbitrer(self.KIDS, [])
+        with self.assertRaises(ValueError):
+            dedup.chemins_a_purger(groupes, ["5"])
+
+    def test_choix_illisible_refuse(self):
+        """Un choix ni « préservé » ni entier est refusé, pas ignoré en silence."""
+        groupes = dedup.groupes_a_arbitrer(self.KIDS, [])
+        with self.assertRaises(ValueError):
+            dedup.chemins_a_purger(groupes, ["oui"])
+
+    def test_nombre_de_choix_doit_correspondre(self):
+        """Footgun /cso : un bloc supprimé décale les choix — on refuse le décalage."""
+        groupes = dedup.groupes_a_arbitrer(self.KIDS + self.WAKE_ZC, self.WAKE_PRESERV)
+        with self.assertRaises(ValueError):
+            dedup.chemins_a_purger(groupes, ["1"])  # 2 groupes, 1 seul choix
+
 
 class TestValiderCibles(unittest.TestCase):
     """Défense en profondeur : refuser une cible hors zone commune même falsifiée."""
@@ -238,6 +263,15 @@ class TestValiderCibles(unittest.TestCase):
     def test_cible_dossier_personnel_refusee(self):
         with self.assertRaises(ValueError):
             dedup.valider_cibles(["Chez Tritri/film.mkv"])
+
+    def test_traversee_par_dot_dot_refusee(self):
+        """Premier segment en zone commune mais .. remonte hors zone : refusé."""
+        with self.assertRaises(ValueError):
+            dedup.valider_cibles(["chill.institute/../PANTAGRUWEB/Patrimoine/x"])
+
+    def test_chemin_absolu_refuse(self):
+        with self.assertRaises(ValueError):
+            dedup.valider_cibles(["/etc/passwd"])
 
 
 class TestRoundTripPropositions(unittest.TestCase):

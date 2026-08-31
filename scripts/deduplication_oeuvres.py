@@ -194,6 +194,11 @@ def chemins_a_purger(groupes, choix):
     préservée demeure). Un index N garde le N-ième encodage et purge les autres.
     Un choix vide ou None ne purge rien (spec « aucune suppression sans choix »).
     """
+    if len(choix) != len(groupes):
+        raise ValueError(
+            f"{len(choix)} choix « garder: » pour {len(groupes)} groupes — "
+            "un bloc a dû être ajouté ou supprimé ; relance le relevé."
+        )
     cibles = []
     for groupe, ch in zip(groupes, choix):
         if not ch:
@@ -201,12 +206,17 @@ def chemins_a_purger(groupes, choix):
         encodages = groupe["encodages"]
         if ch.lower().startswith("préserv") or ch.lower().startswith("preserv"):
             cibles += encodages
-        else:
-            try:
-                garde = int(ch) - 1
-            except ValueError:
-                continue
-            cibles += [e for i, e in enumerate(encodages) if i != garde]
+            continue
+        try:
+            garde = int(ch)
+        except ValueError:
+            raise ValueError(f"choix illisible « {ch} » — attendu : un numéro ou « préservé »")
+        if not 1 <= garde <= len(encodages):
+            raise ValueError(
+                f"choix « {ch} » hors plage [1, {len(encodages)}] — "
+                "un numéro hors plage purgerait tout le groupe ; corrige-le."
+            )
+        cibles += [e for i, e in enumerate(encodages, 1) if i != garde]
     return cibles
 
 
@@ -218,8 +228,8 @@ def valider_cibles(cibles, zones=ZONES):
     personnel, même si le fichier de propositions a été altéré à la main.
     """
     for cible in cibles:
-        premier = cible.split("/", 1)[0]
-        if premier not in zones:
+        segments = cible.split("/")
+        if segments[0] not in zones or ".." in segments or "" in segments[1:]:
             raise ValueError(f"cible hors zone commune, refusée : {pzc.assainir(cible)}")
     return cibles
 

@@ -52,10 +52,39 @@ compteurs à zéro, rien d'éligible).
 - Tout changement de paramètre (`AGE_JOURS`, `PREAVIS_JOURS`,
   `CORBEILLE_JOURS`) est republié avant de prendre effet.
 
+## Déduplication d'œuvre
+
+Le même film existe souvent en plusieurs encodages (x265 vs x264, 1080p vs
+720p), ou traîne encore en zone commune alors qu'une version est déjà
+préservée. `deduplication_oeuvres.py` les repère et prépare un arbitrage —
+mais **ne supprime jamais seul** : un humain désigne l'exemplaire à garder.
+
+Films seulement : les séries (SxxExx, saison, coffret) et les noms sans
+année sont écartés comme « incertains », jamais purgés.
+
+1. **Relevé** : `python3 deduplication_oeuvres.py releve`
+   Produit `doublons-<date>.txt` (éditable) et `.json`. Chaque groupe montre
+   les encodages classés (résolution, codec) et un champ `garder:` pré-rempli.
+2. **Arbitrer** : éditer le champ `garder:` de chaque groupe — un numéro pour
+   conserver cet encodage, ou `préservé` pour garder la version déjà en
+   sécurité. La proposition pré-remplie peut être renversée.
+3. **Préavis** : `python3 deduplication_oeuvres.py preavis --from doublons-<date>.txt`
+   Valide les choix (`valider_cibles` refuse toute cible hors zone commune,
+   même un `..`), liste les fichiers des encodages écartés, et produit un
+   préavis au format de la purge des zones communes.
+4. **Publier puis purger** : poster le préavis sur discutons, et à échéance
+   `python3 purge_zones_communes.py purge --from preavis-doublons-<date>.json`.
+   La suppression emprunte le régime préavis + corbeille ci-dessus — une seule
+   porte destructive.
+
+**Prérequis** : lancer d'abord `purge_zones_communes.py releve` (au moins une
+fois), pour que les fichiers à purger soient dans l'état d'observation ; un
+fichier non observé est sauté par la purge (côté sûr), pas supprimé.
+
 ## Tests
 
 ```bash
-cd scripts && python3 -m unittest test_purge_zones_communes
+cd scripts && python3 -m unittest test_purge_zones_communes test_deduplication_oeuvres
 ```
 
-Fixtures réelles dans `scripts/fixtures/` (listing du 2026-08-31).
+Fixtures réelles dans `scripts/fixtures/` (listings du 2026-08-31).
