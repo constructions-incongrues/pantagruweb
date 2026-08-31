@@ -8,11 +8,16 @@ Conception et règle complète : change `purger-les-zones-communes-putio` du dé
 
 Les zones communes sont déclarées nommément : `chill.institute`, `putflix`.
 Tout dossier non déclaré est réputé personnel et n'est **jamais** touché.
-Dans une zone commune, un fichier observé depuis plus de **30 jours** est
-supprimé, après un préavis publié **14 jours** avant (30 jours au premier
-cycle). La corbeille put.io garde les fichiers **7 jours** après la purge,
-puis est vidée — des seuls fichiers du cycle. Sauver un fichier = le
-**déplacer** : chez soi pour le garder, dans `PANTAGRUWEB/` pour le préserver.
+Dans une zone commune, un fichier est supprimé quand il est observé depuis
+plus de **14 jours**, ou dès **7 jours s'il a déjà été visionné** (voir la
+section « Visionnage » ci-dessous). Un préavis est publié **7 jours** avant.
+La corbeille put.io garde les fichiers **7 jours** après la purge, puis est
+vidée — des seuls fichiers du cycle. Sauver un fichier = le **déplacer** :
+chez soi pour le garder, dans `PANTAGRUWEB/` pour le préserver.
+
+*Seuils resserrés le 2026-08-31 (change `purger-selon-le-visionnage-putio`) :
+seuil de base 30→14 j, préavis 14→7 j, seuil du visionné = 7 j. Délai total
+avant suppression : 14 j pour un fichier vu, 21 j pour un non-vu.*
 
 L'âge est la **date de première observation par le relevé** — jamais le mtime,
 qui reflète souvent la date du contenu d'origine.
@@ -81,10 +86,32 @@ année sont écartés comme « incertains », jamais purgés.
 fois), pour que les fichiers à purger soient dans l'état d'observation ; un
 fichier non observé est sauté par la purge (côté sûr), pas supprimé.
 
+## Visionnage : le vu part plus tôt
+
+Un fichier déjà **consommé** (streamé/ouvert) n'attend plus personne : il
+devient éligible dès **7 jours** au lieu de 14. Le statut vient de l'API
+put.io (`first_accessed_at`), lu par `statut_visionnage.py` — **le seul
+module qui détient le jeton OAuth**, en lecture seule.
+
+- Le `releve` normal interroge l'API automatiquement : il affiche
+  « Visionnage : N fichiers vus » et marque chaque fichier concerné du
+  préavis d'un « · vu, part plus tôt » (sans nommer qui a regardé — le
+  compte put.io est partagé).
+- **`first_accessed_at` = premier accès** (streaming, ouverture), y compris
+  les annexes d'un film streamé ; `null` = jamais ouvert (garde le seuil de
+  14 j).
+- **Si l'API est injoignable, aucun cycle n'est bloqué** : le relevé retombe
+  sur le seuil de base (14 j) pour tout le monde et signale l'avertissement.
+  Le même repli s'obtient à la demande avec `releve --sans-visionnage`, pour
+  lancer un cycle sans toucher au jeton.
+
+Le jeton n'apparaît jamais dans un message, un préavis ou un fichier de
+travail (garde testée).
+
 ## Tests
 
 ```bash
-cd scripts && python3 -m unittest test_purge_zones_communes test_deduplication_oeuvres
+cd scripts && python3 -m unittest test_purge_zones_communes test_deduplication_oeuvres test_statut_visionnage
 ```
 
 Fixtures réelles dans `scripts/fixtures/` (listings du 2026-08-31).

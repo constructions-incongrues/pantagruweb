@@ -24,8 +24,9 @@ from datetime import date, timedelta
 from pathlib import Path
 
 ZONES_COMMUNES = ("chill.institute", "putflix")
-AGE_JOURS = 30
-PREAVIS_JOURS = 14
+AGE_JOURS = 14          # seuil long (tout fichier), resserré de 30→14 le 2026-08-31
+AGE_VU_JOURS = 7        # seuil court : un fichier visionné part dès 7 jours
+PREAVIS_JOURS = 7       # préavis resserré de 14→7 pour ne pas annuler le seuil de base
 CORBEILLE_JOURS = 7
 
 
@@ -116,13 +117,20 @@ class PreavisNonEchu(ValueError):
     """La date de purge du préavis n'est pas atteinte : purge refusée."""
 
 
-def construire_preavis(fichiers_avec_tailles, date_emission, delai_jours=PREAVIS_JOURS):
-    """Structure de préavis : émission, date de purge, fichiers listés."""
+def construire_preavis(fichiers_avec_tailles, date_emission, delai_jours=PREAVIS_JOURS, vus=None):
+    """Structure de préavis : émission, date de purge, fichiers listés.
+
+    `vus` (ensemble de chemins visionnés) marque chaque fichier d'un `vu`
+    booléen — le préavis dit ainsi pourquoi un fichier part plus tôt, sans
+    nommer qui l'a regardé (compte partagé, design D5).
+    """
+    vus = vus or set()
     return {
         "date_emission": date_emission.isoformat(),
         "date_purge": (date_emission + timedelta(days=delai_jours)).isoformat(),
         "fichiers": [
-            {"chemin": chemin, "taille": taille} for chemin, taille in fichiers_avec_tailles
+            {"chemin": chemin, "taille": taille, "vu": chemin in vus}
+            for chemin, taille in fichiers_avec_tailles
         ],
     }
 
@@ -201,6 +209,7 @@ def texte_preavis(preavis):
     total = sum(f["taille"] for f in preavis["fichiers"])
     lignes = [
         f"- {_inline(f['chemin'])}  ({taille_lisible(f['taille'])})"
+        + ("  · vu, part plus tôt" if f.get("vu") else "")
         for f in preavis["fichiers"]
     ]
     return "\n".join(
@@ -265,16 +274,23 @@ def texte_compte_rendu(cr):
     return "\n".join(parties)
 
 
-def eligibles(etat, aujourdhui, age_jours=AGE_JOURS):
-    """Chemins observés depuis strictement plus de `age_jours` jours.
+def eligibles(etat, aujourdhui, vus=None, age_jours=AGE_JOURS, age_vu_jours=AGE_VU_JOURS):
+    """Chemins éligibles à la purge, par âge d'observation et statut de visionnage.
 
-    Ne dépend que de l'état d'observation — jamais du mtime (design D3).
+    Éligible si `(âge > age_jours)` — le seuil long, inconditionnel — OU
+    `(chemin ∈ vus ET âge > age_vu_jours)` — le seuil court, réservé au
+    visionné. Le visionnage n'est qu'un accélérateur : il ne retarde jamais.
+    `vus` absent (None, API indisponible) ⇒ seul le seuil long s'applique
+    (échec du côté sûr, design D3). L'âge reste la première observation,
+    jamais le mtime.
     """
-    return [
-        chemin
-        for chemin, premiere in sorted(etat.items())
-        if (aujourdhui - date.fromisoformat(premiere)).days > age_jours
-    ]
+    vus = vus or set()
+    retenus = []
+    for chemin, premiere in sorted(etat.items()):
+        age = (aujourdhui - date.fromisoformat(premiere)).days
+        if age > age_jours or (chemin in vus and age > age_vu_jours):
+            retenus.append(chemin)
+    return retenus
 
 
 # ---------------------------------------------------------------------------
@@ -289,8 +305,12 @@ def _charger_observations(chemin_etat):
         return {}
 
 
-def commande_releve(racine, travail, inventaire_initial=False, aujourdhui=None, avec_occupation=True):
-    """Relevé : met à jour l'état, écrit préavis (JSON + texte) et résumé."""
+def commande_releve(racine, travail, inventaire_initial=False, aujourdhui=None, avec_occupation=True, vus=None):
+    """Relevé : met à jour l'état, écrit préavis (JSON + texte) et résumé.
+
+    `vus` (ensemble de chemins visionnés, calculé en amont par la couche API)
+    accélère l'éligibilité du visionné ; `None` ⇒ seul le seuil de base joue.
+    """
     aujourdhui = aujourdhui or date.today()
     travail = Path(travail)
     travail.mkdir(parents=True, exist_ok=True)
@@ -308,13 +328,13 @@ def commande_releve(racine, travail, inventaire_initial=False, aujourdhui=None, 
 
     if inventaire_initial:
         vises = chemins
-        delai = AGE_JOURS  # la fenêtre initiale vaut l'âge limite : 30 jours
+        delai = AGE_JOURS  # la fenêtre initiale vaut l'âge limite
     else:
-        vises = eligibles(etat, aujourdhui)
+        vises = eligibles(etat, aujourdhui, vus=vus)
         delai = PREAVIS_JOURS
 
     preavis = construire_preavis(
-        [(c, tailles.get(c, 0)) for c in vises], aujourdhui, delai_jours=delai
+        [(c, tailles.get(c, 0)) for c in vises], aujourdhui, delai_jours=delai, vus=vus
     )
     nom = f"preavis-{aujourdhui.isoformat()}"
     (travail / f"{nom}.json").write_text(
@@ -475,7 +495,9 @@ def main(argv=None):
     sous = parseur.add_subparsers(dest="commande", required=True)
     p_releve = sous.add_parser("releve", help="met à jour l'état et génère le préavis")
     p_releve.add_argument("--inventaire-initial", action="store_true",
-                          help="premier cycle : tout lister, fenêtre de 30 jours")
+                          help="premier cycle : tout lister, fenêtre de l'âge limite")
+    p_releve.add_argument("--sans-visionnage", action="store_true",
+                          help="ne pas interroger l'API put.io — repli sur le seuil de base seul")
     p_purge = sous.add_parser("purge", help="exécute un préavis échu, après confirmation")
     p_purge.add_argument("--from", dest="preavis", required=True,
                          help="le fichier preavis-AAAA-MM-JJ.json à exécuter")
@@ -486,7 +508,15 @@ def main(argv=None):
                              help="le fichier purge-AAAA-MM-JJ.json du cycle")
     args = parseur.parse_args(argv)
     if args.commande == "releve":
-        return commande_releve(args.racine, args.travail, args.inventaire_initial)
+        vus = None
+        if not args.inventaire_initial and not args.sans_visionnage:
+            import statut_visionnage  # import local : la logique de purge reste sans réseau
+            vus, erreur = statut_visionnage.statut_visionnage(zones=ZONES_COMMUNES)
+            if erreur:
+                print(f"AVERTISSEMENT — {erreur}", file=sys.stderr)
+            else:
+                print(f"Visionnage : {len(vus)} fichiers vus (partent dès {AGE_VU_JOURS} j).")
+        return commande_releve(args.racine, args.travail, args.inventaire_initial, vus=vus)
     if args.commande == "corbeille":
         return commande_corbeille(args.purge)
     return commande_purge(args.racine, args.travail, args.preavis)
