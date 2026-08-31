@@ -19,6 +19,7 @@ import argparse
 import json
 import os
 import sys
+import unicodedata
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -156,16 +157,51 @@ def taille_lisible(octets):
     return f"{octets} o"
 
 
-def _bloc_inerte(lignes):
-    """Encadre des noms de fichiers dans un bloc où la syntaxe est inerte."""
-    return "~~~~\n" + "\n".join(lignes) + "\n~~~~"
+def assainir(texte):
+    """Retire les caractères de contrôle Unicode (catégorie C*).
+
+    Les noms de fichiers viennent de torrents et des membres — entrée non
+    fiable (audit /cso du 2026-08-31). Sans ce passage, un nom porteur de
+    séquences ANSI/ESC peut masquer une ligne du dry-run au moment où le
+    mainteneur décide de supprimer (finding #3), et un retour à la ligne
+    casse le rendu des messages postés.
+    """
+    return "".join(c if unicodedata.category(c)[0] != "C" else "?" for c in texte)
+
+
+def _inline(nom):
+    """Nom en code inline Markdown — réellement inerte, y compris sur Rocket.Chat.
+
+    Rocket.Chat n'implémente pas les clôtures à tildes ; un nom laissé nu y
+    est rendu comme Markdown actif (lien, @mention, faux texte de
+    gouvernance — finding #1). Le code inline à backtick, lui, est supporté
+    et neutralise le Markdown à l'intérieur ; on retire d'abord les
+    backticks (et les contrôles) du nom pour qu'il ne puisse pas en sortir.
+    """
+    return "`" + assainir(nom).replace("`", "'") + "`"
+
+
+def ligne_occupation(dossier, taille):
+    """Une ligne du tableau d'occupation, cellule de nom neutralisée.
+
+    Le `|` d'un nom de dossier casserait la structure du tableau posté et
+    injecterait du Markdown (variante du finding #1) ; il est remplacé par
+    une barre brisée visuellement proche mais inoffensive.
+    """
+    return f"| {_inline(dossier).replace('|', '¦')} | {assainir(taille)} |"
+
+
+def lignes_dry_run(chemins):
+    """Les lignes du dry-run de purge, assainies avant affichage terminal."""
+    return [f"  {assainir(chemin)}" for chemin in chemins]
 
 
 def texte_preavis(preavis):
     """Le préavis prêt à poster sur le canal de coordination."""
     total = sum(f["taille"] for f in preavis["fichiers"])
     lignes = [
-        f"{f['chemin']}  ({taille_lisible(f['taille'])})" for f in preavis["fichiers"]
+        f"- {_inline(f['chemin'])}  ({taille_lisible(f['taille'])})"
+        for f in preavis["fichiers"]
     ]
     return "\n".join(
         [
@@ -177,7 +213,7 @@ def texte_preavis(preavis):
             "Pour sauver un fichier : le **déplacer** hors de la zone commune — "
             "chez vous pour le garder sous la main, dans `PANTAGRUWEB/` pour le préserver.",
             "",
-            _bloc_inerte(lignes),
+            *lignes,
         ]
     )
 
@@ -206,7 +242,7 @@ def texte_compte_rendu(cr):
             f"{taille_lisible(cr['octets_supprimes'])} — partis en corbeille, "
             f"espace libéré le **{cr['liberation_corbeille']}**.",
             "",
-            _bloc_inerte(cr["supprimes"]),
+            *[f"- {_inline(chemin)}" for chemin in cr["supprimes"]],
             "",
         ]
     else:
@@ -215,17 +251,17 @@ def texte_compte_rendu(cr):
         parties += [
             f"Sauvés par déplacement : {len(cr['sauves'])} fichiers.",
             "",
-            _bloc_inerte(cr["sauves"]),
+            *[f"- {_inline(chemin)}" for chemin in cr["sauves"]],
             "",
         ]
     parties.append("Re-remplissage depuis le cycle précédent :")
     for zone, compte in cr["re_remplissage"].items():
         parties.append(
-            f"- {zone} : {compte['fichiers']} fichiers, {taille_lisible(compte['octets'])}"
+            f"- {_inline(zone)} : {compte['fichiers']} fichiers, {taille_lisible(compte['octets'])}"
         )
     if cr["ecarts"]:
         parties += ["", "Écarts constatés :"]
-        parties += [f"- {e}" for e in cr["ecarts"]]
+        parties += [f"- {assainir(e)}" for e in cr["ecarts"]]
     return "\n".join(parties)
 
 
@@ -294,7 +330,8 @@ def commande_releve(racine, travail, inventaire_initial=False, aujourdhui=None, 
             ["du", "-sh", *entrees], capture_output=True, text=True, check=False
         )
         lignes = [
-            f"| {dossier} | {taille} |" for dossier, taille in occupation_depuis_du(du.stdout)
+            ligne_occupation(dossier, taille)
+            for dossier, taille in occupation_depuis_du(du.stdout)
         ]
         (travail / f"occupation-{aujourdhui.isoformat()}.md").write_text(
             "\n".join(
@@ -336,8 +373,8 @@ def commande_purge(racine, travail, chemin_preavis, aujourdhui=None, confirmer=i
 
     print(f"Dry-run — {len(a_purger)} fichiers seraient supprimés "
           f"({taille_lisible(sum(tailles.get(c, 0) for c in a_purger))}) :")
-    for chemin in a_purger:
-        print(f"  {chemin}")
+    for ligne in lignes_dry_run(a_purger):
+        print(ligne)
     print(f"Sauvés (déplacés depuis le préavis) : {len(sauves)}")
 
     if not a_purger:
@@ -356,13 +393,13 @@ def commande_purge(racine, travail, chemin_preavis, aujourdhui=None, confirmer=i
     for chemin in a_purger:
         cible = (racine / chemin).resolve()
         if racine.resolve() not in cible.parents:
-            ecarts.append(f"chemin hors racine, ignoré : {chemin}")
+            ecarts.append(f"chemin hors racine, ignoré : {assainir(chemin)}")
             continue
         try:
             cible.unlink()
             supprimes.append(chemin)
         except OSError as erreur:
-            ecarts.append(f"échec de suppression : {chemin} ({erreur})")
+            ecarts.append(f"échec de suppression : {assainir(chemin)} ({assainir(str(erreur))})")
 
     # Les dossiers vidés par la purge, et eux seuls, sont retirés — sous les zones uniquement.
     for zone in ZONES_COMMUNES:
@@ -421,7 +458,7 @@ def commande_corbeille(chemin_purge):
           f"prévu le {cr['liberation_corbeille']}.")
     print(f"{len(noms)} noms à retrouver dans https://app.put.io/trash :\n")
     for nom in noms:
-        print(f"  {nom}")
+        print(f"  {assainir(nom)}")
     print(
         "\nProcédure : comparer le contenu de la corbeille à cette liste.\n"
         "- Si la corbeille ne contient QUE ces fichiers : « Empty trash » est équivalent au tri.\n"

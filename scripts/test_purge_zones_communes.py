@@ -256,17 +256,20 @@ class TestGenerationDesTextes(unittest.TestCase):
         self.assertIn("PANTAGRUWEB", texte)
 
     def test_les_noms_sont_inertes_dans_le_texte(self):
-        """Un nom portant de la syntaxe (backticks, astérisques) reste encadré tel quel."""
+        """Un nom portant de la syntaxe est confiné dans un span de code inline.
+
+        Rocket.Chat ne rend pas les clôtures à tildes ; la protection réelle
+        est le code inline à backtick, dont le nom ne peut pas s'évader (ses
+        propres backticks sont remplacés par des apostrophes).
+        """
         preavis = pzc.construire_preavis(
             [("putflix/`echo pwned` **gras** [lien](x).mkv", 10)],
             date_emission=date(2026, 8, 31),
         )
-        texte = pzc.texte_preavis(preavis)
-        self.assertIn("`echo pwned` **gras** [lien](x).mkv", texte)
-        debut_bloc = texte.index("~~~~")
-        fin_bloc = texte.rindex("~~~~")
-        self.assertLess(debut_bloc, texte.index("echo pwned"))
-        self.assertLess(texte.index("echo pwned"), fin_bloc)
+        ligne = next(l for l in pzc.texte_preavis(preavis).split("\n") if "echo pwned" in l)
+        self.assertTrue(ligne.startswith("- `"))
+        self.assertEqual(ligne.split("  (")[0].count("`"), 2)  # un seul span, pas d'évasion
+        self.assertNotIn("`echo pwned`", ligne)  # les backticks du nom sont neutralisés
 
     def test_compte_rendu_sans_effet(self):
         """Scénario : une purge sans effet rend compte aussi."""
@@ -317,6 +320,46 @@ class TestListeDeControleCorbeille(unittest.TestCase):
             pzc.noms_pour_corbeille(cr),
             ["autre.mkv", "film.mkv", "sous-titres.srt"],
         )
+
+
+class TestNeutralisationDesNomsHostiles(unittest.TestCase):
+    """Audit /cso 2026-08-31 : noms = entrée non fiable (torrents, membres).
+
+    Les noms ne doivent jamais être du markdown actif dans un message posté,
+    ni porter de séquences de contrôle dans le terminal du mainteneur.
+    """
+
+    NOM_HOSTILE = "A\x1b[2K[cliquez](http://evil) @all `code` |x\nligne2"
+
+    def test_assainir_retire_les_caracteres_de_controle(self):
+        assaini = pzc.assainir(self.NOM_HOSTILE)
+        self.assertNotIn("\x1b", assaini)   # ESC (séquence ANSI, finding #3)
+        self.assertNotIn("\n", assaini)     # saut de ligne (casse tout)
+        self.assertTrue(all(ord(c) >= 0x20 or c == " " for c in assaini))
+
+    def test_le_preavis_neutralise_le_markdown_actif(self):
+        """Finding #1 : un nom-lien ne doit pas rester un lien cliquable."""
+        preavis = pzc.construire_preavis(
+            [(f"chill.institute/{self.NOM_HOSTILE}.mkv", 10)], date(2026, 8, 31)
+        )
+        texte = pzc.texte_preavis(preavis)
+        self.assertNotIn("\x1b", texte)             # séquence ANSI retirée
+        ligne = next(l for l in texte.split("\n") if "cliquez" in l)
+        self.assertTrue(ligne.startswith("- `"))    # confiné en code inline
+        self.assertEqual(ligne.split("  (")[0].count("`"), 2)  # un seul span : lien et @all inertes
+        self.assertNotIn("\n@all", texte)           # pas de @mention échappée en début de ligne
+
+    def test_la_table_occupation_neutralise_le_pipe(self):
+        """Variante : un nom de dossier avec | ne casse pas la cellule."""
+        ligne = pzc.ligne_occupation("dossier|piégé", "42G")
+        self.assertEqual(ligne.count("|"), 3)  # les 3 délimiteurs de cellule, pas un de plus
+        self.assertIn("¦", ligne)              # le pipe du nom a été remplacé
+
+    def test_le_dry_run_terminal_est_assaini(self):
+        """Finding #3 : la liste imprimée au moment de décider ne cache rien."""
+        for ligne in pzc.lignes_dry_run(["chill.institute/" + self.NOM_HOSTILE]):
+            self.assertNotIn("\x1b", ligne)
+            self.assertNotIn("\n", ligne.rstrip("\n"))
 
 
 class TestScanDesZones(unittest.TestCase):
