@@ -18,11 +18,21 @@ locals {
   # Le convertir en CNAME comme ses voisins serait coherent, mais c'est une
   # modification DNS sur un service en usage : elle merite sa propre decision,
   # pas un effet de bord.
+  # `ytdl` a ete retire le 2026-08-30, apres la decision D8 de ne plus router
+  # ytdl-server publiquement. Le nom resolvait toujours vers gabelle, qui
+  # repondait 404 faute de route Traefik : un enregistrement DNS valide devant
+  # un service qui n'ecoute pas est un piege pour celui qui diagnostique — il
+  # conclut « le service est tombe » la ou il faut lire « il n'y a plus de
+  # route, et c'est voulu ».
+  #
+  # Verifie avant retrait : plus aucun workflow n8n n'appelle ce nom (n8n
+  # l'appelle desormais en http://gabelle.pantagruweb.club:8000, filtre par
+  # pare-feu au seul cartons). Les seules occurrences restantes sont
+  # documentaires et historiques.
   gabelle_cnames = {
     nhuitn  = "nhuitn"
     panurge = "panurge"
     papiers = "papiers"
-    ytdl    = "ytdl"
   }
 
   # Configuration des enregistrements CNAME pointant vers GitHub Pages
