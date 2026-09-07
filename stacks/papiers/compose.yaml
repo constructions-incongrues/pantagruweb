@@ -69,6 +69,28 @@ services:
       - /mnt/remote/vip/Coolections/Bibliothèque/Papiers:/usr/src/paperless/consume
     env_file: .env
     environment:
+      # Entrainement du classificateur DESACTIVE le 2026-09-07.
+      #
+      # `documents.tasks.train_classifier` allouait ~11,8 Go a chaque execution
+      # -- toutes les heures a :05 -- et se faisait tuer par le noyau. Sur une
+      # base de 22 DOCUMENTS. La disproportion designe un defaut de la 3.1.3,
+      # pas un probleme de volume.
+      #
+      # Comment on l'a identifie, parce que le piege est facile a retomber
+      # dedans : DEUX taches partagent l'horaire `5 */1 * * *`, celle-ci et
+      # `check_scheduled_workflows`. C'est la seconde qu'on voit d'abord dans
+      # les journaux, mais elle se termine en 50 ms -- les horodatages a la
+      # milliseconde le montrent. La tache encore en cours au moment du SIGKILL
+      # est bien l'entrainement.
+      #
+      # CE QUE CA COUTE : Paperless ne suggerera plus automatiquement etiquettes,
+      # correspondants et types sur les nouveaux documents. La consultation, la
+      # recherche, l'OCR et l'ingestion ne sont pas touches. De fait le
+      # classificateur ne s'entrainait deja plus, puisque la tache mourait a
+      # chaque fois : cette ligne arrete une depense sans contrepartie.
+      #
+      # A retirer quand une 3.1.x corrigera le defaut.
+      PAPERLESS_TRAIN_TASK_CRON: disable
       PAPERLESS_REDIS: redis://broker:6379
       PAPERLESS_TIKA_ENABLED: 1
       PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://gotenberg:3000
