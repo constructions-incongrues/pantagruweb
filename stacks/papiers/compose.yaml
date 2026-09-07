@@ -35,8 +35,29 @@ services:
     volumes:
       - redisdata:/data
   webserver:
-    image: ghcr.io/paperless-ngx/paperless-ngx:latest
+    # Version EPINGLEE. Elle etait en `:latest`, et la machine a change de
+    # version le 2026-09-04 sans qu'aucun commit ne le dise. 3.1.3 est ce qui
+    # tournait au moment de poser cette ligne : on decrit l'existant, on ne
+    # met pas a jour au passage.
+    image: ghcr.io/paperless-ngx/paperless-ngx:3.1.3
     restart: unless-stopped
+    # Garde-fou memoire, pose le 2026-09-07 apres 6 OOM en 24 h.
+    #
+    # `documents.tasks.check_scheduled_workflows` s'execute toutes les heures a
+    # :05 et alloue ~11,8 Go en 26 secondes, de facon identique a chaque fois
+    # (12 802 8xx Ko de total-vm sur cinq mesures). Sans limite, le conteneur
+    # prenait les 15 Gio de la machine : le tueur OOM frappait alors des tiers
+    # innocents -- redis, uvicorn, le worker Celery de ytdl-server -- qui
+    # demandaient de la memoire au mauvais moment.
+    #
+    # CE QUE CETTE LIGNE NE FAIT PAS : elle ne repare pas la tache. Paperless
+    # continuera d'etre tue toutes les heures. Elle l'empeche seulement
+    # d'emmener le reste de la machine avec lui.
+    #
+    # 3 Gio = six fois la consommation au repos, relevee a 518 Mio. La marge
+    # couvre l'OCR et la consommation de documents ; a ajuster si un traitement
+    # legitime se fait tuer.
+    mem_limit: 3g
     depends_on:
       - broker
       - gotenberg
@@ -78,7 +99,9 @@ services:
       - "--chromium-disable-javascript=true"
       - "--chromium-allow-list=file:///tmp/.*"
   tika:
-    image: docker.io/apache/tika:latest
+    # Epinglee pour la meme raison que paperless-ngx ci-dessus : `:latest` fait
+    # deriver la machine sans trace. 4.0.0 est la version qui tournait.
+    image: docker.io/apache/tika:4.0.0
     restart: unless-stopped
 volumes:
   data:
