@@ -457,16 +457,19 @@ def commande_purge(racine, travail, chemin_preavis, created_at, aujourdhui=None,
         date_execution=aujourdhui,
         force=force,
     )
-    nom = f"purge-{aujourdhui.isoformat()}"
-    (travail / f"{nom}.json").write_text(
-        json.dumps(cr, ensure_ascii=False, indent=1), encoding="utf-8"
-    )
-    (travail / f"compte-rendu-{aujourdhui.isoformat()}.md").write_text(
-        texte_compte_rendu(cr) + "\n", encoding="utf-8"
-    )
+    # Une seconde purge le même jour n'écrase pas la première : elle prend « -2 », « -3 »…
+    # (purge-<date>.json est le seul guide du vidage de corbeille à J+7).
+    suffixe, n = aujourdhui.isoformat(), 1
+    while (travail / f"purge-{suffixe}.json").exists() or (travail / f"compte-rendu-{suffixe}.md").exists():
+        n += 1
+        suffixe = f"{aujourdhui.isoformat()}-{n}"
+    liste = travail / f"purge-{suffixe}.json"
+    compte_rendu = travail / f"compte-rendu-{suffixe}.md"
+    liste.write_text(json.dumps(cr, ensure_ascii=False, indent=1), encoding="utf-8")
+    compte_rendu.write_text(texte_compte_rendu(cr) + "\n", encoding="utf-8")
     print(f"Supprimés : {len(supprimes)} · écarts : {len(ecarts)}")
-    print(f"Compte rendu : {travail / 'compte-rendu-' }{aujourdhui.isoformat()}.md (à poster)")
-    print(f"Liste pour le vidage de corbeille à J+{CORBEILLE_JOURS} : {travail / nom}.json")
+    print(f"Compte rendu : {compte_rendu} (à poster)")
+    print(f"Liste pour le vidage de corbeille à J+{CORBEILLE_JOURS} : {liste}")
     return 0
 
 
