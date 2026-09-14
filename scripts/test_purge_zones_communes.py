@@ -537,5 +537,26 @@ class TestForcageAvantEcheance(unittest.TestCase):
             self.assertTrue((travail / "compte-rendu-2026-08-31-2.md").exists())
 
 
+class TestReleveDuMemeJour(unittest.TestCase):
+    def test_deux_releves_le_meme_jour_n_ecrasent_pas_le_premier_preavis(self):
+        """Un préavis peut déjà être posté : le relevé suivant du jour prend « -2 »."""
+        with tempfile.TemporaryDirectory() as tmp:
+            racine = Path(tmp) / "putio"
+            (racine / "chill.institute").mkdir(parents=True)
+            (racine / "chill.institute" / "vieux.mkv").write_bytes(b"x" * 100)
+            travail = Path(tmp) / "travail"
+            jour = date(2026, 8, 31)
+            pzc.commande_releve(racine, travail, {"chill.institute/vieux.mkv": "2020-01-01"},
+                                aujourdhui=jour, avec_occupation=False)
+            premier_md = (travail / "preavis-2026-08-31.md").read_text(encoding="utf-8")
+            pzc.commande_releve(racine, travail, {}, aujourdhui=jour, avec_occupation=False)
+            premier = json.loads((travail / "preavis-2026-08-31.json").read_text(encoding="utf-8"))
+            self.assertEqual([f["chemin"] for f in premier["fichiers"]], ["chill.institute/vieux.mkv"])
+            self.assertEqual((travail / "preavis-2026-08-31.md").read_text(encoding="utf-8"), premier_md)
+            second = json.loads((travail / "preavis-2026-08-31-2.json").read_text(encoding="utf-8"))
+            self.assertEqual(second["fichiers"], [])
+            self.assertTrue((travail / "preavis-2026-08-31-2.md").exists())
+
+
 if __name__ == "__main__":
     unittest.main()

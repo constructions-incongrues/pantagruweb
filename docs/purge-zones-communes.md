@@ -57,7 +57,11 @@ pulls.
 1. **Relevé** : `python3 purge_zones_communes.py releve`
    Lit l'API (dates d'ajout + visionnage) et le montage (tailles, occupation).
    Produit `preavis-<date>.md` (à poster sur discutons), `preavis-<date>.json`
-   (pour la purge) et `occupation-<date>.md`. **API injoignable = préavis vide,
+   (pour la purge) et `occupation-<date>.md`. Un second relevé le même jour (après
+   un sauvetage, par exemple) **n'écrase pas** le premier, qui a peut-être déjà
+   été posté : ses sorties prennent le suffixe `-2` (`preavis-<date>-2.md`…).
+   Poster, puis purger, **le dernier préavis produit** — son chemin est affiché
+   en fin de commande. **API injoignable = préavis vide,
    cycle sauté** (aucun repli — c'est la décision du remplacement franc).
 2. **Poster le préavis** sur discutons. Sans publication, pas de purge.
 3. **À l'échéance** : `python3 purge_zones_communes.py purge --from ~/purge-zones-communes/preavis-<date>.json`.
