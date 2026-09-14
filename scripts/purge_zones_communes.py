@@ -307,6 +307,17 @@ def eligibles(created_at, aujourdhui, vus=None, age_jours=AGE_JOURS, age_vu_jour
 # Procédure (I/O) — vérifiée par exécution réelle sur gabelle, cf. tasks 3.1/3.2
 
 
+def suffixe_libre(travail, jour, gabarits):
+    """Premier suffixe (« AAAA-MM-JJ », puis « AAAA-MM-JJ-2 »…) qu'aucun gabarit
+    n'occupe dans `travail` : deux exécutions le même jour ne s'écrasent pas
+    (un préavis posté, une liste de corbeille sont des recours)."""
+    suffixe, n = jour.isoformat(), 1
+    while any((Path(travail) / g.format(suffixe)).exists() for g in gabarits):
+        n += 1
+        suffixe = f"{jour.isoformat()}-{n}"
+    return suffixe
+
+
 def commande_releve(racine, travail, created_at, vus=None, aujourdhui=None, avec_occupation=True):
     """Relevé sans état : l'éligibilité vient des dates d'ajout put.io, pas d'un
     état accumulé (change `baser-l-age-de-purge-sur-created-at`).
@@ -327,7 +338,8 @@ def commande_releve(racine, travail, created_at, vus=None, aujourdhui=None, avec
     preavis = construire_preavis(
         [(c, tailles.get(c, 0)) for c in vises], aujourdhui, delai_jours=PREAVIS_JOURS, vus=vus
     )
-    nom = f"preavis-{aujourdhui.isoformat()}"
+    suffixe = suffixe_libre(travail, aujourdhui, ("preavis-{}.json", "preavis-{}.md", "occupation-{}.md"))
+    nom = f"preavis-{suffixe}"
     (travail / f"{nom}.json").write_text(
         json.dumps(preavis, ensure_ascii=False, indent=1), encoding="utf-8"
     )
@@ -344,7 +356,7 @@ def commande_releve(racine, travail, created_at, vus=None, aujourdhui=None, avec
             ligne_occupation(dossier, taille)
             for dossier, taille in occupation_depuis_du(du.stdout)
         ]
-        (travail / f"occupation-{aujourdhui.isoformat()}.md").write_text(
+        (travail / f"occupation-{suffixe}.md").write_text(
             "\n".join(
                 [f"**Occupation put.io par dossier** — relevé du {aujourdhui.isoformat()}",
                  "", "| Dossier | Taille |", "|---|---:|", *lignes]
@@ -457,16 +469,14 @@ def commande_purge(racine, travail, chemin_preavis, created_at, aujourdhui=None,
         date_execution=aujourdhui,
         force=force,
     )
-    nom = f"purge-{aujourdhui.isoformat()}"
-    (travail / f"{nom}.json").write_text(
-        json.dumps(cr, ensure_ascii=False, indent=1), encoding="utf-8"
-    )
-    (travail / f"compte-rendu-{aujourdhui.isoformat()}.md").write_text(
-        texte_compte_rendu(cr) + "\n", encoding="utf-8"
-    )
+    suffixe = suffixe_libre(travail, aujourdhui, ("purge-{}.json", "compte-rendu-{}.md"))
+    liste = travail / f"purge-{suffixe}.json"
+    compte_rendu = travail / f"compte-rendu-{suffixe}.md"
+    liste.write_text(json.dumps(cr, ensure_ascii=False, indent=1), encoding="utf-8")
+    compte_rendu.write_text(texte_compte_rendu(cr) + "\n", encoding="utf-8")
     print(f"Supprimés : {len(supprimes)} · écarts : {len(ecarts)}")
-    print(f"Compte rendu : {travail / 'compte-rendu-' }{aujourdhui.isoformat()}.md (à poster)")
-    print(f"Liste pour le vidage de corbeille à J+{CORBEILLE_JOURS} : {travail / nom}.json")
+    print(f"Compte rendu : {compte_rendu} (à poster)")
+    print(f"Liste pour le vidage de corbeille à J+{CORBEILLE_JOURS} : {liste}")
     return 0
 
 

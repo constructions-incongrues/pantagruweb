@@ -515,6 +515,48 @@ class TestForcageAvantEcheance(unittest.TestCase):
             self.assertEqual(rc, 1)
             self.assertTrue(cible.exists())  # rien supprimé : la phrase de forçage était fausse
 
+    def test_deux_purges_le_meme_jour_n_ecrasent_pas_les_sorties(self):
+        """Purge forcée puis seconde purge le même jour : la liste de la première
+        (seul guide du vidage de corbeille à J+7) et son compte-rendu survivent."""
+        with tempfile.TemporaryDirectory() as tmp:
+            racine, travail, pre, _cible = self._racine_temp(tmp)
+            reponses = iter(["purger sans preavis echu", "purger 1 fichiers"])
+            jour = date(2026, 8, 31)
+            pzc.commande_purge(racine, travail, pre, self.created_at, aujourdhui=jour,
+                               confirmer=lambda _p: next(reponses), force=True)
+            premier_md = (travail / "compte-rendu-2026-08-31.md").read_text(encoding="utf-8")
+            rc = pzc.commande_purge(racine, travail, pre, self.created_at, aujourdhui=jour,
+                                    confirmer=lambda _p: "", force=True)  # rien à purger
+            self.assertEqual(rc, 0)
+            premier = json.loads((travail / "purge-2026-08-31.json").read_text(encoding="utf-8"))
+            self.assertEqual(premier["supprimes"], ["chill.institute/vieux.mkv"])
+            self.assertEqual((travail / "compte-rendu-2026-08-31.md").read_text(encoding="utf-8"),
+                             premier_md)
+            second = json.loads((travail / "purge-2026-08-31-2.json").read_text(encoding="utf-8"))
+            self.assertEqual(second["supprimes"], [])
+            self.assertTrue((travail / "compte-rendu-2026-08-31-2.md").exists())
+
+
+class TestReleveDuMemeJour(unittest.TestCase):
+    def test_deux_releves_le_meme_jour_n_ecrasent_pas_le_premier_preavis(self):
+        """Un préavis peut déjà être posté : le relevé suivant du jour prend « -2 »."""
+        with tempfile.TemporaryDirectory() as tmp:
+            racine = Path(tmp) / "putio"
+            (racine / "chill.institute").mkdir(parents=True)
+            (racine / "chill.institute" / "vieux.mkv").write_bytes(b"x" * 100)
+            travail = Path(tmp) / "travail"
+            jour = date(2026, 8, 31)
+            pzc.commande_releve(racine, travail, {"chill.institute/vieux.mkv": "2020-01-01"},
+                                aujourdhui=jour, avec_occupation=False)
+            premier_md = (travail / "preavis-2026-08-31.md").read_text(encoding="utf-8")
+            pzc.commande_releve(racine, travail, {}, aujourdhui=jour, avec_occupation=False)
+            premier = json.loads((travail / "preavis-2026-08-31.json").read_text(encoding="utf-8"))
+            self.assertEqual([f["chemin"] for f in premier["fichiers"]], ["chill.institute/vieux.mkv"])
+            self.assertEqual((travail / "preavis-2026-08-31.md").read_text(encoding="utf-8"), premier_md)
+            second = json.loads((travail / "preavis-2026-08-31-2.json").read_text(encoding="utf-8"))
+            self.assertEqual(second["fichiers"], [])
+            self.assertTrue((travail / "preavis-2026-08-31-2.md").exists())
+
 
 if __name__ == "__main__":
     unittest.main()
