@@ -222,7 +222,7 @@ def texte_preavis(preavis):
 
 
 def construire_compte_rendu(
-    supprimes, tailles, sauves, re_rempl, ecarts, date_execution,
+    supprimes, tailles, absents, epargnes, re_rempl, ecarts, date_execution,
     corbeille_jours=CORBEILLE_JOURS, force=False,
 ):
     """Structure du compte rendu d'exécution d'une purge.
@@ -236,7 +236,8 @@ def construire_compte_rendu(
         "force": force,
         "supprimes": supprimes,
         "octets_supprimes": sum(tailles.get(c, 0) for c in supprimes),
-        "sauves": sauves,
+        "absents": absents,
+        "epargnes": epargnes,
         "re_remplissage": re_rempl,
         "ecarts": ecarts,
         "liberation_corbeille": (date_execution + timedelta(days=corbeille_jours)).isoformat(),
@@ -264,13 +265,19 @@ def texte_compte_rendu(cr):
         ]
     else:
         parties += ["Aucun fichier supprimé ce cycle.", ""]
-    if cr["sauves"]:
-        parties += [
-            f"Sauvés par déplacement : {len(cr['sauves'])} fichiers.",
-            "",
-            *[f"- {_inline(chemin)}" for chemin in cr["sauves"]],
-            "",
-        ]
+    # Une absence ne dit pas si le fichier a été déplacé ou supprimé hors purge
+    # (purge du 2026-09-14 : 5 « sauvés » étaient en fait supprimés).
+    for cle, libelle in (
+        ("absents", "Absents à l'exécution (déplacés ou supprimés hors purge)"),
+        ("epargnes", "Épargnés (présents, mais ré-ajoutés depuis le préavis ou sans date d'ajout)"),
+    ):
+        if cr[cle]:
+            parties += [
+                f"{libelle} : {len(cr[cle])} fichiers.",
+                "",
+                *[f"- {_inline(chemin)}" for chemin in cr[cle]],
+                "",
+            ]
     parties.append("Re-remplissage depuis le cycle précédent :")
     for zone, compte in cr["re_remplissage"].items():
         parties.append(
@@ -403,13 +410,16 @@ def commande_purge(racine, travail, chemin_preavis, created_at, aujourdhui=None,
         return 1
 
     listes = [f["chemin"] for f in preavis["fichiers"]]
-    sauves = [c for c in listes if c not in a_purger]
+    presents = set(chemins)
+    absents = [c for c in listes if c not in presents]
+    epargnes = [c for c in listes if c in presents and c not in a_purger]
 
     print(f"Dry-run — {len(a_purger)} fichiers seraient supprimés "
           f"({taille_lisible(sum(tailles.get(c, 0) for c in a_purger))}) :")
     for ligne in lignes_dry_run(a_purger):
         print(ligne)
-    print(f"Sauvés (déplacés depuis le préavis) : {len(sauves)}")
+    print(f"Absents à l'exécution (déplacés ou supprimés hors purge) : {len(absents)}")
+    print(f"Épargnés (présents, ré-ajoutés depuis le préavis ou sans date d'ajout) : {len(epargnes)}")
 
     if not a_purger:
         print("Rien à purger.")
@@ -463,7 +473,8 @@ def commande_purge(racine, travail, chemin_preavis, created_at, aujourdhui=None,
     cr = construire_compte_rendu(
         supprimes=supprimes,
         tailles={**tailles, **{f["chemin"]: f["taille"] for f in preavis["fichiers"]}},
-        sauves=sauves,
+        absents=absents,
+        epargnes=epargnes,
         re_rempl=re_remplissage(apparus, tailles),
         ecarts=ecarts,
         date_execution=aujourdhui,
