@@ -74,6 +74,16 @@ pulls.
    **n'écrase pas** la première : ses sorties prennent le suffixe `-2`
    (`purge-<date>-2.json`, `compte-rendu-<date>-2.md`), puis `-3`… Chaque purge
    garde sa propre liste ; le chemin exact est affiché en fin de commande.
+   Les fichiers du préavis qui ne sont pas purgés sont rapportés en deux
+   listes, distinctes dans le compte rendu comme dans `purge-<date>.json` :
+   - **Absents à l'exécution** (clé `absents`) : plus au chemin annoncé.
+     Déplacés **ou supprimés hors purge** — le script ne voit qu'une absence
+     et ne peut pas dire lequel. Ne pas les annoncer comme « sauvés » : lors de
+     la purge du 2026-09-14, 5 fichiers présentés ainsi avaient en fait été
+     supprimés. *Les `purge-<date>.json` antérieurs au 2026-09-17 portent une
+     clé `sauves` qui mêle les deux listes. Aucun code ne la relit.*
+   - **Épargnés** (clé `epargnes`) : encore là, mais ré-ajoutés depuis
+     l'émission du préavis, ou sans date d'ajout lisible.
 4. **Poster le compte rendu** sur discutons.
 5. **À J+7** : `python3 purge_zones_communes.py corbeille --from ~/purge-zones-communes/purge-<date>.json`
    (une fois par purge du cycle, `-2` compris) imprime la liste de contrôle, puis dans <https://app.put.io/trash> :

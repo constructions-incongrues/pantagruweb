@@ -6,6 +6,8 @@ Fixtures réelles capturées le 2026-08-31 via le montage /mnt/remote/putio
 (dépôt secretariat).
 """
 
+import contextlib
+import io
 import json
 import tempfile
 import unittest
@@ -268,7 +270,8 @@ class TestGenerationDesTextes(unittest.TestCase):
         cr = pzc.construire_compte_rendu(
             supprimes=[],
             tailles={},
-            sauves=[],
+            absents=[],
+            epargnes=[],
             re_rempl=pzc.re_remplissage([], {}),
             ecarts=[],
             date_execution=date(2026, 9, 14),
@@ -280,7 +283,8 @@ class TestGenerationDesTextes(unittest.TestCase):
         cr = pzc.construire_compte_rendu(
             supprimes=["chill.institute/vieux.mkv"],
             tailles={"chill.institute/vieux.mkv": 2_000_000_000},
-            sauves=["putflix/sauve.mkv"],
+            absents=["putflix/absent.mkv"],
+            epargnes=["putflix/reajoute.mkv"],
             re_rempl=pzc.re_remplissage(
                 ["chill.institute/frais.mkv"], {"chill.institute/frais.mkv": 500_000_000}
             ),
@@ -291,7 +295,8 @@ class TestGenerationDesTextes(unittest.TestCase):
         texte = pzc.texte_compte_rendu(cr)
         self.assertIn("chill.institute/vieux.mkv", texte)
         self.assertIn("2,0 Go", texte)
-        self.assertIn("putflix/sauve.mkv", texte)
+        self.assertIn("putflix/absent.mkv", texte)
+        self.assertIn("putflix/reajoute.mkv", texte)
         self.assertIn("2026-09-21", texte)
         self.assertIn("zone déclarée introuvable : putflix", texte)
         self.assertIn("500,0 Mo", texte)
@@ -474,7 +479,7 @@ class TestForcageAvantEcheance(unittest.TestCase):
         cr = pzc.construire_compte_rendu(
             supprimes=["chill.institute/vieux.mkv"],
             tailles={"chill.institute/vieux.mkv": 100},
-            sauves=[], re_rempl=pzc.re_remplissage([], {}), ecarts=[],
+            absents=[], epargnes=[], re_rempl=pzc.re_remplissage([], {}), ecarts=[],
             date_execution=date(2026, 8, 31), force=True,
         )
         self.assertTrue(cr["force"])
@@ -556,6 +561,65 @@ class TestReleveDuMemeJour(unittest.TestCase):
             second = json.loads((travail / "preavis-2026-08-31-2.json").read_text(encoding="utf-8"))
             self.assertEqual(second["fichiers"], [])
             self.assertTrue((travail / "preavis-2026-08-31-2.md").exists())
+
+
+class TestCompteRenduDesNonPurges(unittest.TestCase):
+    """Un fichier listé qui n'est plus à purger n'est pas forcément « sauvé ».
+
+    Purge du 2026-09-14 : 5 fichiers annoncés « sauvés par déplacement »
+    avaient en fait été supprimés de put.io hors purge. Le script ne voit
+    qu'une absence — il ne peut pas dire déplacé ou supprimé — et doit
+    distinguer cette absence d'un fichier présent mais ré-ajouté.
+    """
+
+    def setUp(self):
+        self.preavis = pzc.construire_preavis(
+            [("chill.institute/vieux.mkv", 100), ("chill.institute/disparu.mkv", 100),
+             ("putflix/reajoute.mkv", 100)],
+            date_emission=date(2026, 8, 31), delai_jours=7,
+        )
+        self.created_at = {"chill.institute/vieux.mkv": "2026-07-01",
+                           "putflix/reajoute.mkv": "2026-09-05"}
+
+    def _purger(self, tmp):
+        racine = Path(tmp) / "putio"
+        for chemin in ("chill.institute/vieux.mkv", "putflix/reajoute.mkv"):
+            (racine / chemin).parent.mkdir(parents=True, exist_ok=True)
+            (racine / chemin).write_bytes(b"x" * 100)
+        travail = Path(tmp) / "travail"
+        travail.mkdir()
+        pre = travail / "preavis.json"
+        pre.write_text(json.dumps(self.preavis), encoding="utf-8")
+        reponses = iter(["oui", "purger 1 fichiers"])
+        sortie = io.StringIO()
+        with contextlib.redirect_stdout(sortie):
+            rc = pzc.commande_purge(racine, travail, pre, self.created_at,
+                                    aujourdhui=date(2026, 9, 7),
+                                    confirmer=lambda _p: next(reponses))
+        self.assertEqual(rc, 0)
+        return (json.loads((travail / "purge-2026-09-07.json").read_text(encoding="utf-8")),
+                (travail / "compte-rendu-2026-09-07.md").read_text(encoding="utf-8"),
+                sortie.getvalue())
+
+    def test_un_absent_n_est_pas_presente_comme_sauve_par_deplacement(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cr, texte, console = self._purger(tmp)
+        self.assertNotIn("sauves", cr)
+        self.assertEqual(cr["absents"], ["chill.institute/disparu.mkv"])
+        self.assertNotIn("Sauvés", texte)
+        self.assertNotIn("Sauvés", console)
+        self.assertIn("Absents à l'exécution (déplacés ou supprimés hors purge) : 1 fichiers", texte)
+        self.assertIn("Absents à l'exécution (déplacés ou supprimés hors purge) : 1", console)
+
+    def test_un_reajoute_apres_le_preavis_est_rapporte_comme_epargne(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cr, texte, console = self._purger(tmp)
+        self.assertEqual(cr["epargnes"], ["putflix/reajoute.mkv"])
+        ligne = next(l for l in texte.split("\n") if l.startswith("Épargnés"))
+        self.assertIn("ré-ajoutés", ligne)
+        self.assertIn("Épargnés", console)
+        absents = texte.split("Absents à l'exécution")[1].split("Épargnés")[0]
+        self.assertNotIn("reajoute.mkv", absents)
 
 
 if __name__ == "__main__":
